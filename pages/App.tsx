@@ -1,25 +1,22 @@
-import React from 'react';
-import { HashRouter, Routes, Route } from 'react-router-dom';
-import VehicleTypeSelection from './pages/VehicleTypeSelection';
-import VehicleProfileSetup from './pages/VehicleProfileSetup';
-import Dashboard from './pages/Dashboard';
-import TaskDetail from './pages/TaskDetail';
-import Garage from './pages/Garage';
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 
-import Login from './pages/Login';
+import Dashboard from "./screens/Dashboard";
+import Garage from "./screens/Garage";
+import TaskDetail from "./screens/TaskDetail";
+import VehicleTypeSelection from "./screens/VehicleTypeSelection";
+import VehicleProfileSetup from "./screens/VehicleProfileSetup";
 
 const App: React.FC = () => {
   return (
-    <HashRouter>
-      <Routes>
-        <Route path="/" element={<VehicleTypeSelection />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/setup-profile" element={<VehicleProfileSetup />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/task-detail" element={<TaskDetail />} />
-        <Route path="/garage" element={<Garage />} />
-      </Routes>
-    </HashRouter>
+    <Routes>
+      <Route path="/" element={<VehicleTypeSelection />} />
+      <Route path="/setup-profile" element={<VehicleProfileSetup />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/garage" element={<Garage />} />
+      <Route path="/task-detail" element={<TaskDetail />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 };
 
