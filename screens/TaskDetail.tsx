@@ -79,17 +79,31 @@ const TaskDetail: React.FC = () => {
     // Check if it's AdBlue to change labels
     const isAdBlue = task.title.toLowerCase().includes('adblue');
     
-    // State for History
+    // State for History Form
     const [historyData, setHistoryData] = useState({
         date: new Date().toISOString().split('T')[0], // Default to today
         km: vehicle.mileage || ''
     });
+
+    // State for Last Recorded History
+    const [lastRecord, setLastRecord] = useState<any>(null);
 
     // Toast Notification State
     const [showToast, setShowToast] = useState(false);
     
     // Location State
     const [locationStatus, setLocationStatus] = useState<'idle' | 'loading' | 'found'>('idle');
+
+    // Load last record on mount
+    useEffect(() => {
+        const storedHistory = localStorage.getItem('autominder_history');
+        if (storedHistory) {
+            const history = JSON.parse(storedHistory);
+            if (history[vehicle.id] && history[vehicle.id][task.id]) {
+                setLastRecord(history[vehicle.id][task.id]);
+            }
+        }
+    }, [vehicle.id, task.id]);
 
     const handleSaveHistory = () => {
         if (!historyData.km || !historyData.date) return;
@@ -229,6 +243,30 @@ const TaskDetail: React.FC = () => {
                                     <span className="material-symbols-outlined text-primary">history_edu</span>
                                     {isAdBlue ? "Registrar Relleno" : "Actualizar Historial"}
                                 </h3>
+
+                                {/* SHOW PREVIOUS RECORD IF EXISTS */}
+                                {lastRecord && (
+                                    <div className="mb-6 p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-dashed border-gray-200 dark:border-white/10 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                                        <div className="flex items-center gap-3">
+                                             <div className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                                                <span className="material-symbols-outlined text-sm">history</span>
+                                             </div>
+                                             <div>
+                                                 <p className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                                     {isAdBlue ? "Último rellenado" : "Último cambio"}
+                                                 </p>
+                                                 <p className="font-bold text-gray-900 dark:text-white">
+                                                     {new Date(lastRecord.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                                 </p>
+                                             </div>
+                                        </div>
+                                        <div className="pl-11 sm:pl-0">
+                                            <span className="inline-block bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-md px-2 py-1 text-sm font-mono font-medium text-gray-700 dark:text-gray-300">
+                                                {parseInt(lastRecord.km).toLocaleString('es-ES')} km
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
                                 
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
                                     <div className="space-y-2">
