@@ -147,8 +147,18 @@ const Dashboard: React.FC = () => {
     const [daysToItv, setDaysToItv] = useState<number | null>(null);
     const [garage, setGarage] = useState<any[]>([]);
     const [showVehicleMenu, setShowVehicleMenu] = useState(false);
+    
+    // User Name State
+    const [userName, setUserName] = useState("Alex");
+    const [isEditingName, setIsEditingName] = useState(false);
 
     useEffect(() => {
+        // Load Username
+        const storedName = localStorage.getItem('autominder_username');
+        if (storedName) {
+            setUserName(storedName);
+        }
+
         // Migration logic: check if old single object exists and new garage doesn't
         const oldVehicle = localStorage.getItem('autominder_vehicle');
         const storedGarage = localStorage.getItem('autominder_garage');
@@ -199,6 +209,18 @@ const Dashboard: React.FC = () => {
             calculateDays(storedItv);
         }
     }, [navigate]);
+
+    const handleNameSave = () => {
+        setIsEditingName(false);
+        if (userName.trim() === "") setUserName("Conductor");
+        localStorage.setItem('autominder_username', userName || "Conductor");
+    };
+
+    const handleNameKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            handleNameSave();
+        }
+    };
 
     const saveItvDate = (date: string) => {
         setItvDate(date);
@@ -270,7 +292,27 @@ const Dashboard: React.FC = () => {
                 {/* Greeting & Vehicle Selector */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4 relative z-20">
                     <div className="relative">
-                        <p className="text-text-muted dark:text-text-muted-dark text-sm font-medium mb-1">Buenos días, Alex</p>
+                        {isEditingName ? (
+                            <input 
+                                autoFocus
+                                type="text"
+                                value={userName}
+                                onChange={(e) => setUserName(e.target.value)}
+                                onBlur={handleNameSave}
+                                onKeyDown={handleNameKeyDown}
+                                className="text-sm font-medium mb-1 bg-transparent border-b border-primary outline-none text-text-main dark:text-white w-40"
+                            />
+                        ) : (
+                            <div 
+                                onClick={() => setIsEditingName(true)}
+                                className="group flex items-center gap-2 cursor-pointer w-fit"
+                            >
+                                <p className="text-text-muted dark:text-text-muted-dark text-sm font-medium mb-1 group-hover:text-primary transition-colors">
+                                    Buenos días, {userName}
+                                </p>
+                                <span className="material-symbols-outlined text-[14px] text-text-muted opacity-0 group-hover:opacity-100 transition-opacity">edit</span>
+                            </div>
+                        )}
                         
                         {/* Vehicle Dropdown Trigger */}
                         <div onClick={() => setShowVehicleMenu(!showVehicleMenu)} className="flex items-center gap-2 cursor-pointer group hover:opacity-80 transition-opacity select-none">
@@ -328,7 +370,7 @@ const Dashboard: React.FC = () => {
                 {/* Main Content Grid: Tasks & Sidebar (ITV) */}
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6 relative z-10">
                     
-                    {/* Left Column: Maintenance Tasks (Moved to top/first for mobile) */}
+                    {/* Left Column: Maintenance Tasks + Health Status */}
                     <div className="md:col-span-7 lg:col-span-8 flex flex-col gap-6">
                         {/* Upcoming Tasks Section */}
                         <div>
@@ -359,9 +401,41 @@ const Dashboard: React.FC = () => {
                                 ))}
                             </div>
                         </div>
+
+                         {/* Health Status Card (Moved Here) */}
+                        <div className="bg-card-light dark:bg-card-dark rounded-2xl p-6 shadow-soft border border-gray-100 dark:border-white/5 relative overflow-hidden group">
+                            {/* Abstract Background Decoration */}
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+                            <div className="flex flex-col sm:flex-row items-center gap-8 relative z-10">
+                                {/* Circular Progress */}
+                                <div className="relative h-48 w-48 shrink-0">
+                                    <svg className="h-full w-full -rotate-90 transform" viewBox="0 0 100 100">
+                                        <circle className="text-gray-100 dark:text-white/5" cx="50" cy="50" fill="transparent" r="42" stroke="currentColor" strokeWidth="8"></circle>
+                                        <circle className="text-primary transition-all duration-1000 ease-out" cx="50" cy="50" fill="transparent" r="42" stroke="currentColor" strokeDasharray="264" strokeDashoffset="40" strokeLinecap="round" strokeWidth="8"></circle>
+                                    </svg>
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                                        <span className="text-4xl font-extrabold text-text-main dark:text-white">85%</span>
+                                        <span className="text-xs font-semibold uppercase tracking-wider text-text-muted dark:text-text-muted-dark">Salud</span>
+                                    </div>
+                                </div>
+                                {/* Text Content */}
+                                <div className="flex flex-col text-center sm:text-left">
+                                    <h3 className="text-xl font-bold mb-2">Todo en orden</h3>
+                                    <p className="text-text-muted dark:text-text-muted-dark mb-6 leading-relaxed">
+                                        Hemos cargado el plan oficial de {vehicle.make}. Tienes tareas pendientes para mantener la garantía y fiabilidad.
+                                    </p>
+                                    <div className="flex flex-wrap justify-center sm:justify-start gap-3">
+                                        <span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-bold">
+                                            <span className="material-symbols-outlined text-sm mr-1">check_circle</span>
+                                            General OK
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
-                    {/* Right Sidebar: ITV, Stats, CTA */}
+                    {/* Right Sidebar: ITV Only */}
                     <div className="md:col-span-5 lg:col-span-4 flex flex-col gap-6">
                         {/* ITV Module */}
                         <div className="bg-card-light dark:bg-card-dark rounded-2xl p-6 shadow-soft border border-gray-100 dark:border-white/5 relative overflow-hidden">
@@ -408,76 +482,7 @@ const Dashboard: React.FC = () => {
                                 />
                             </label>
                         </div>
-
-                        {/* Quick Stats Card */}
-                        <div className="bg-card-light dark:bg-card-dark rounded-2xl p-6 shadow-soft border border-gray-100 dark:border-white/5">
-                            <div className="bg-center bg-no-repeat bg-cover rounded-xl w-full h-40 mb-4 relative overflow-hidden" data-alt="Vehicle parked" style={{backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuBQX6fPG-gY61lh2q_jUOQkmgP63pbyxCuUChSAbDb9Ueehinw9DTMmc0IAuzYu-CxU6UeNdhJ9K248Z9VKg1EpRjjIjFPShibcB8vZXVoV6zihxvmzcStw8irdBZ8FPLpyNG9LqdIR0PKMcVCE3Z50ltGdZNBegbykzYKooHbRXbKhSvWsm9CIkNXZOvoa4L3UbG4Gr3kTnf_oujACxuWslzHeYi5-ssvfxqrsazn7f61zERJcp3IG76hjCpWgD0oUHwfDMaD0PkXG")'}}>
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-4">
-                                    <p className="text-white text-xs font-medium">Sincronizado: hace 4h</p>
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="p-3 bg-background-light dark:bg-white/5 rounded-lg">
-                                    <p className="text-xs text-text-muted dark:text-text-muted-dark mb-1">Uso Medio</p>
-                                    <p className="text-lg font-bold">34 <span className="text-xs font-normal">km/día</span></p>
-                                </div>
-                                <div className="p-3 bg-background-light dark:bg-white/5 rounded-lg">
-                                    <p className="text-xs text-text-muted dark:text-text-muted-dark mb-1">Próx. Taller</p>
-                                    <p className="text-lg font-bold">15 Mar</p>
-                                </div>
-                            </div>
-                        </div>
-                        {/* Call to Action Card (Desktop view prominent action) */}
-                        <div className="bg-gradient-to-br from-[#102216] to-[#1a3c25] rounded-2xl p-6 shadow-lg text-white relative overflow-hidden hidden md:flex flex-col">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
-                            <div className="h-12 w-12 bg-primary/20 rounded-xl flex items-center justify-center text-primary mb-4 border border-primary/20">
-                                <span className="material-symbols-outlined">speed</span>
-                            </div>
-                            <h3 className="text-xl font-bold mb-2">Actualizar Odómetro</h3>
-                            <p className="text-gray-300 text-sm mb-6">Mantener tu kilometraje actualizado asegura que nuestras predicciones sean precisas.</p>
-                            <button className="w-full h-12 bg-primary hover:bg-primary-hover text-[#111813] font-bold rounded-lg flex items-center justify-center gap-2 transition-all shadow-glow">
-                                <span>Actualizar Ahora</span>
-                                <span className="material-symbols-outlined text-lg">arrow_forward</span>
-                            </button>
-                        </div>
                     </div>
-                </div>
-
-                {/* Secondary Grid (Bottom): Health Status */}
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-6 relative z-10">
-                     <div className="md:col-span-7 lg:col-span-8 flex flex-col gap-6">
-                         {/* Health Status Card */}
-                        <div className="bg-card-light dark:bg-card-dark rounded-2xl p-6 shadow-soft border border-gray-100 dark:border-white/5 relative overflow-hidden group">
-                            {/* Abstract Background Decoration */}
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-                            <div className="flex flex-col sm:flex-row items-center gap-8 relative z-10">
-                                {/* Circular Progress */}
-                                <div className="relative h-48 w-48 shrink-0">
-                                    <svg className="h-full w-full -rotate-90 transform" viewBox="0 0 100 100">
-                                        <circle className="text-gray-100 dark:text-white/5" cx="50" cy="50" fill="transparent" r="42" stroke="currentColor" strokeWidth="8"></circle>
-                                        <circle className="text-primary transition-all duration-1000 ease-out" cx="50" cy="50" fill="transparent" r="42" stroke="currentColor" strokeDasharray="264" strokeDashoffset="40" strokeLinecap="round" strokeWidth="8"></circle>
-                                    </svg>
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                                        <span className="text-4xl font-extrabold text-text-main dark:text-white">85%</span>
-                                        <span className="text-xs font-semibold uppercase tracking-wider text-text-muted dark:text-text-muted-dark">Salud</span>
-                                    </div>
-                                </div>
-                                {/* Text Content */}
-                                <div className="flex flex-col text-center sm:text-left">
-                                    <h3 className="text-xl font-bold mb-2">Todo en orden</h3>
-                                    <p className="text-text-muted dark:text-text-muted-dark mb-6 leading-relaxed">
-                                        Hemos cargado el plan oficial de {vehicle.make}. Tienes tareas pendientes para mantener la garantía y fiabilidad.
-                                    </p>
-                                    <div className="flex flex-wrap justify-center sm:justify-start gap-3">
-                                        <span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-bold">
-                                            <span className="material-symbols-outlined text-sm mr-1">check_circle</span>
-                                            General OK
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                     </div>
                 </div>
             </main>
             {/* Floating Action Button (FAB) */}
