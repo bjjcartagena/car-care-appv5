@@ -2,8 +2,23 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import DarkModeToggle from '../components/DarkModeToggle';
 
-// Mock DB for manufacturer logic
-const getMaintenanceTasks = (type: string, make: string, km: number) => {
+// Helper to calculate remaining KM based on history
+const calculateRemaining = (taskKey: string, intervalKm: number, currentKm: number, history: any, vehicleId: string, defaultRemaining: string) => {
+    // Check if there is history for this specific vehicle and task
+    if (history && history[vehicleId] && history[vehicleId][taskKey]) {
+        const lastServiceKm = parseInt(history[vehicleId][taskKey].km);
+        const kmDriven = currentKm - lastServiceKm;
+        const remaining = intervalKm - kmDriven;
+        
+        // If negative, it's overdue
+        if (remaining < 0) return `Vencido hace ${Math.abs(remaining)} KM`;
+        return `${remaining.toLocaleString('es-ES')} KM`;
+    }
+    return defaultRemaining; // Fallback to mock if no history
+};
+
+// Mock DB for manufacturer logic - UPDATED to accept history and calculation
+const getMaintenanceTasks = (type: string, make: string, km: number, history: any, vehicleId: string) => {
     // Common items
     const tasks = [];
     
@@ -18,7 +33,8 @@ const getMaintenanceTasks = (type: string, make: string, km: number) => {
             priorityTag: "Recurrente",
             priorityColor: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
             subtitle: "Cada 500-1000 km",
-            remaining: "350 KM"
+            remaining: calculateRemaining('chain', 800, km, history, vehicleId, "350 KM"),
+            intervalKm: 800
         });
         tasks.push({
             id: 'tires',
@@ -29,7 +45,8 @@ const getMaintenanceTasks = (type: string, make: string, km: number) => {
             priorityTag: "Seguridad",
             priorityColor: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
             subtitle: "Revisar en frío semanalmente",
-            remaining: "2 Días"
+            remaining: "2 Días", // Time based, keeping static for now or need date logic
+            intervalKm: 0
         });
         
         if (make === 'Ducati') {
@@ -42,19 +59,8 @@ const getMaintenanceTasks = (type: string, make: string, km: number) => {
                 priorityTag: "Crítico",
                 priorityColor: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
                 subtitle: "Reglaje desmodrómico",
-                remaining: "4.500 KM"
-            });
-        } else if (make === 'BMW Motorrad') {
-             tasks.push({
-                id: 'cardan',
-                title: "Aceite Cardán",
-                icon: "settings_applications",
-                color: "text-purple-600 dark:text-purple-400",
-                bg: "bg-purple-50 dark:bg-purple-900/20",
-                priorityTag: "Mecánica",
-                priorityColor: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
-                subtitle: "Revisión eje transmisión",
-                remaining: "8.000 KM"
+                remaining: calculateRemaining('desmo', 24000, km, history, vehicleId, "4.500 KM"),
+                intervalKm: 24000
             });
         }
     } else {
@@ -68,7 +74,9 @@ const getMaintenanceTasks = (type: string, make: string, km: number) => {
             priorityTag: "Pronto",
             priorityColor: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
             subtitle: "Intervalo recomendado anual",
-            remaining: "2.400 KM"
+            // Example: Interval 15,000km
+            remaining: calculateRemaining('oil', 15000, km, history, vehicleId, "2.400 KM"),
+            intervalKm: 15000
         });
 
         // Brand specific
@@ -82,7 +90,8 @@ const getMaintenanceTasks = (type: string, make: string, km: number) => {
                 priorityTag: "Urgente",
                 priorityColor: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
                 subtitle: "Sistema BlueHDi",
-                remaining: "1.200 KM"
+                remaining: calculateRemaining('adblue', 10000, km, history, vehicleId, "1.200 KM"),
+                intervalKm: 10000
             });
             tasks.push({
                 id: 'timing_belt',
@@ -93,7 +102,8 @@ const getMaintenanceTasks = (type: string, make: string, km: number) => {
                 priorityTag: "Largo Plazo",
                 priorityColor: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
                 subtitle: "Revisar correa húmeda",
-                remaining: "40.000 KM"
+                remaining: calculateRemaining('timing_belt', 100000, km, history, vehicleId, "40.000 KM"),
+                intervalKm: 100000
             });
         }
         
@@ -107,7 +117,8 @@ const getMaintenanceTasks = (type: string, make: string, km: number) => {
                 priorityTag: "Garantía",
                 priorityColor: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
                 subtitle: "Salud de batería HV",
-                remaining: "5.000 KM"
+                remaining: calculateRemaining('hybrid', 15000, km, history, vehicleId, "5.000 KM"),
+                intervalKm: 15000
             });
         }
         
@@ -121,7 +132,8 @@ const getMaintenanceTasks = (type: string, make: string, km: number) => {
                 priorityTag: "Seguridad",
                 priorityColor: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
                 subtitle: "Cambio cada 2 años",
-                remaining: "3 Meses"
+                remaining: "3 Meses", // Time based
+                intervalKm: 0
             });
         }
     }
@@ -137,7 +149,8 @@ const getMaintenanceTasks = (type: string, make: string, km: number) => {
             priorityTag: "Salud",
             priorityColor: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
             subtitle: "Aire limpio",
-            remaining: "8.000 KM"
+            remaining: calculateRemaining('cabin_filter', 20000, km, history, vehicleId, "8.000 KM"),
+            intervalKm: 20000
         });
     }
 
@@ -150,7 +163,8 @@ const Dashboard: React.FC = () => {
         make: "Peugeot",
         model: "3008",
         mileage: "82.400",
-        type: "car"
+        type: "car",
+        id: "default"
     });
     const [tasks, setTasks] = useState<any[]>([]);
     const [itvDate, setItvDate] = useState<string>('');
@@ -158,17 +172,20 @@ const Dashboard: React.FC = () => {
     const [garage, setGarage] = useState<any[]>([]);
     const [showVehicleMenu, setShowVehicleMenu] = useState(false);
     
-    // User Name State - Lazy initialization to read from storage first
+    // User Name State
     const [userName, setUserName] = useState(() => localStorage.getItem('autominder_username') || "Conductor");
     const [isEditingName, setIsEditingName] = useState(false);
 
+    // Notifications State
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [reminders, setReminders] = useState<any[]>([]);
+
     useEffect(() => {
-        // Migration logic: check if old single object exists and new garage doesn't
+        // Migration logic
         const oldVehicle = localStorage.getItem('autominder_vehicle');
         const storedGarage = localStorage.getItem('autominder_garage');
         
         if (oldVehicle && !storedGarage) {
-            // Migrate
             const parsedOld = JSON.parse(oldVehicle);
             parsedOld.id = Date.now().toString();
             parsedOld.dateAdded = new Date().toISOString();
@@ -176,12 +193,20 @@ const Dashboard: React.FC = () => {
             const newGarage = [parsedOld];
             localStorage.setItem('autominder_garage', JSON.stringify(newGarage));
             localStorage.setItem('autominder_active_id', parsedOld.id);
-            localStorage.removeItem('autominder_vehicle'); // Clean up
+            localStorage.removeItem('autominder_vehicle'); 
+        }
+
+        // Load Reminders
+        const storedReminders = localStorage.getItem('autominder_reminders');
+        if (storedReminders) {
+            setReminders(JSON.parse(storedReminders));
         }
 
         // Load active vehicle from garage
         const garageStr = localStorage.getItem('autominder_garage');
         const activeId = localStorage.getItem('autominder_active_id');
+        const historyStr = localStorage.getItem('autominder_history');
+        const history = historyStr ? JSON.parse(historyStr) : {};
         
         if (garageStr) {
             const parsedGarage = JSON.parse(garageStr);
@@ -196,13 +221,18 @@ const Dashboard: React.FC = () => {
                 }
                 
                 setVehicle(activeVehicle);
-                setTasks(getMaintenanceTasks(activeVehicle.type, activeVehicle.make, parseInt(activeVehicle.mileage)));
+                // Pass History to calculate logic
+                setTasks(getMaintenanceTasks(
+                    activeVehicle.type, 
+                    activeVehicle.make, 
+                    parseInt(activeVehicle.mileage),
+                    history,
+                    activeVehicle.id
+                ));
             } else {
-                // Garage exists but empty? Go to setup
                 navigate('/');
             }
         } else {
-            // No garage, go to setup
              navigate('/');
         }
 
@@ -235,15 +265,10 @@ const Dashboard: React.FC = () => {
 
     const calculateDays = (dateStr: string) => {
         if (!dateStr) return;
-        // Format YYYY-MM
         const [year, month] = dateStr.split('-').map(Number);
-        // Calculate target as the LAST day of that month.
-        // new Date(year, month, 0) gives the last day of the 'month' (where month is 1-12)
         const target = new Date(year, month, 0);
-        
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        
         const diffTime = target.getTime() - today.getTime();
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         setDaysToItv(diffDays);
@@ -251,7 +276,8 @@ const Dashboard: React.FC = () => {
 
     const switchVehicle = (v: any) => {
         setVehicle(v);
-        setTasks(getMaintenanceTasks(v.type, v.make, parseInt(v.mileage)));
+        const history = JSON.parse(localStorage.getItem('autominder_history') || '{}');
+        setTasks(getMaintenanceTasks(v.type, v.make, parseInt(v.mileage), history, v.id));
         localStorage.setItem('autominder_active_id', v.id);
         setShowVehicleMenu(false);
     };
@@ -264,13 +290,18 @@ const Dashboard: React.FC = () => {
     const formatItvDisplay = (dateStr: string) => {
         if (!dateStr) return "";
         const [year, month] = dateStr.split('-').map(Number);
-        // Create a date object for display (set day to 1 to avoid month rollover issues)
         const date = new Date(year, month - 1, 1);
         return date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
     };
 
     const handleTaskClick = (task: any) => {
         navigate('/task-detail', { state: { task, vehicle } });
+    };
+
+    const clearReminders = () => {
+        setReminders([]);
+        localStorage.removeItem('autominder_reminders');
+        setShowNotifications(false);
     };
 
     return (
@@ -284,10 +315,53 @@ const Dashboard: React.FC = () => {
                         </div>
                         <h1 className="text-xl font-bold tracking-tight">Car Care App</h1>
                     </div>
-                    <div className="flex gap-2">
-                        <button className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-text-main dark:text-white">
+                    <div className="flex gap-2 relative">
+                        {/* Notification Bell */}
+                        <button 
+                            onClick={() => setShowNotifications(!showNotifications)}
+                            className="relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-text-main dark:text-white"
+                        >
                             <span className="material-symbols-outlined">notifications</span>
+                            {reminders.length > 0 && (
+                                <span className="absolute top-2 right-2 h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-white dark:border-[#1a2c20]"></span>
+                            )}
                         </button>
+                        
+                        {/* Notification Dropdown */}
+                        {showNotifications && (
+                            <>
+                                <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)}></div>
+                                <div className="absolute top-full right-0 mt-2 w-80 bg-white dark:bg-[#1a2c20] rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100 origin-top-right">
+                                    <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                                        <h3 className="font-bold text-sm text-gray-900 dark:text-white">Recordatorios</h3>
+                                        {reminders.length > 0 && (
+                                            <button onClick={clearReminders} className="text-xs text-primary hover:underline">Borrar todo</button>
+                                        )}
+                                    </div>
+                                    <div className="max-h-64 overflow-y-auto">
+                                        {reminders.length === 0 ? (
+                                            <div className="p-8 text-center text-gray-500 text-sm">
+                                                No tienes recordatorios activos.
+                                            </div>
+                                        ) : (
+                                            reminders.map((rem, i) => (
+                                                <div key={i} className="p-4 border-b border-gray-50 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                                                    <div className="flex items-start gap-3">
+                                                        <div className="mt-0.5 h-2 w-2 rounded-full bg-primary shrink-0"></div>
+                                                        <div>
+                                                            <p className="text-sm font-bold text-gray-900 dark:text-white">{rem.title}</p>
+                                                            <p className="text-xs text-gray-500">{rem.vehicleName}</p>
+                                                            <p className="text-[10px] text-gray-400 mt-1">Recordar en 1 semana</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                            </>
+                        )}
+
                         <Link to="/garage" className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-text-main dark:text-white" title="Mi Garaje">
                             <span className="material-symbols-outlined">garage_home</span>
                         </Link>
