@@ -1,446 +1,564 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import DarkModeToggle from '../components/DarkModeToggle';
 
-// Dynamic content helper
-const getTaskContent = (taskTitle: string) => {
-    const titleLower = taskTitle?.toLowerCase() || '';
-
-    if (titleLower.includes('aceite')) {
-        return {
-            description: "El aceite es la sangre de tu motor. Cambiarlo a tiempo lubrica las partes móviles, reduce el calor y elimina impurezas. Un aceite viejo pierde propiedades, aumentando el desgaste y el riesgo de averías graves.",
-            image: "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?q=80&w=1000&auto=format&fit=crop",
-            interval: "Cada 1 Año",
-            intervalSub: "o 15.000 km",
-            cost: "60€ - 120€",
-            difficulty: "Media"
-        };
-    } else if (titleLower.includes('neumáticos') || titleLower.includes('ruedas')) {
-        return {
-            description: "Los neumáticos son el único punto de contacto con la carretera. Una presión incorrecta aumenta el consumo y reduce la seguridad. El dibujo debe tener al menos 1.6mm para evitar aquaplaning.",
-            image: "https://images.unsplash.com/photo-1578844251758-2f71da64522f?q=80&w=1000&auto=format&fit=crop",
-            interval: "Semanal",
-            intervalSub: "Revisar presión",
-            cost: "0€",
-            difficulty: "Baja"
-        };
-    } else if (titleLower.includes('distribución') || titleLower.includes('correa')) {
-        return {
-            description: "La rotura de la correa de distribución es una de las averías más caras, pudiendo destrozar el motor. Es vital cambiarla antes del kilometraje recomendado por el fabricante para evitar daños catastróficos.",
-            image: "https://images.unsplash.com/photo-1597762696655-6dc22744857b?q=80&w=1000&auto=format&fit=crop",
-            interval: "5-10 Años",
-            intervalSub: "o 100.000 km",
-            cost: "300€ - 600€",
-            difficulty: "Alta"
-        };
-    } else if (titleLower.includes('adblue')) {
-        return {
-            description: "El AdBlue reduce las emisiones nocivas. Si el depósito se vacía, el coche no arrancará por normativa legal. Mantén el nivel adecuado para evitar problemas en el sistema anticontaminación.",
-            image: "https://images.unsplash.com/photo-1626131435278-65476a6d6333?q=80&w=1000&auto=format&fit=crop",
-            interval: "Variable",
-            intervalSub: "Según consumo",
-            cost: "15€ - 30€",
-            difficulty: "Baja"
-        };
-    } else if (titleLower.includes('cadena')) {
-        return {
-            description: "Una cadena seca o sucia se desgasta rápidamente y pierde potencia. Engrasarla cada 500-1000km prolonga la vida del kit de arrastre y mejora la suavidad de la conducción.",
-            image: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?q=80&w=1000&auto=format&fit=crop",
-            interval: "500 km",
-            intervalSub: "Limpiar y engrasar",
-            cost: "5€ - 15€",
-            difficulty: "Baja"
-        };
+// Helper to calculate remaining KM based on history
+const calculateRemaining = (taskKey: string, intervalKm: number, currentKm: number, history: any, vehicleId: string, defaultRemaining: string) => {
+    // Check if there is history for this specific vehicle and task
+    if (history && history[vehicleId] && history[vehicleId][taskKey]) {
+        const lastServiceKm = parseInt(history[vehicleId][taskKey].km);
+        const kmDriven = currentKm - lastServiceKm;
+        const remaining = intervalKm - kmDriven;
+        
+        // If negative, it's overdue
+        if (remaining < 0) return `Vencido hace ${Math.abs(remaining)} KM`;
+        return `${remaining.toLocaleString('es-ES')} KM`;
     }
-    
-    // Default (Brake Fluid / Generic)
-    return {
-        description: "El líquido viejo puede absorber humedad del aire, reduciendo su punto de ebullición y provocando fallos en frenadas bruscas. Cambiarlo asegura que tu coche responda al instante, protegiéndote a ti y a tus pasajeros.",
-        image: "https://lh3.googleusercontent.com/aida-public/AB6AXuBQX6fPG-gY61lh2q_jUOQkmgP63pbyxCuUChSAbDb9Ueehinw9DTMmc0IAuzYu-CxU6UeNdhJ9K248Z9VKg1EpRjjIjFPShibcB8vZXVoV6zihxvmzcStw8irdBZ8FPLpyNG9LqdIR0PKMcVCE3Z50ltGdZNBegbykzYKooHbRXbKhSvWsm9CIkNXZOvoa4L3UbG4Gr3kTnf_oujACxuWslzHeYi5-ssvfxqrsazn7f61zERJcp3IG76hjCpWgD0oUHwfDMaD0PkXG",
-        interval: "Cada 2 Años",
-        intervalSub: "o 40.000 km",
-        cost: "90€ - 120€",
-        difficulty: "Moderada"
-    };
+    return defaultRemaining; // Fallback to mock if no history
 };
 
-const TaskDetail: React.FC = () => {
-    const navigate = useNavigate();
-    const location = useLocation();
+// Mock DB for manufacturer logic - UPDATED to accept history and calculation
+const getMaintenanceTasks = (type: string, make: string, km: number, history: any, vehicleId: string) => {
+    // Common items
+    const tasks = [];
     
-    // Get state from navigation
-    const { task, vehicle } = location.state || { 
-        task: { id: "unknown", title: "Mantenimiento General", subtitle: "Revisión periódica" }, 
-        vehicle: { id: "unknown", make: 'Mi Vehículo', model: '', mileage: '0' } 
-    };
-
-    const content = getTaskContent(task.title);
-    
-    // Check if it's AdBlue to change labels
-    const isAdBlue = task.title.toLowerCase().includes('adblue');
-    
-    // State for History Form
-    const [historyData, setHistoryData] = useState({
-        date: new Date().toISOString().split('T')[0], // Default to today
-        km: vehicle.mileage || ''
-    });
-
-    // State for Last Recorded History
-    const [lastRecord, setLastRecord] = useState<any>(null);
-
-    // Toast Notification State
-    const [showToast, setShowToast] = useState(false);
-    
-    // Location State
-    const [locationStatus, setLocationStatus] = useState<'idle' | 'loading' | 'found'>('idle');
-
-    // Load last record on mount
-    useEffect(() => {
-        const storedHistory = localStorage.getItem('autominder_history');
-        if (storedHistory) {
-            const history = JSON.parse(storedHistory);
-            if (history[vehicle.id] && history[vehicle.id][task.id]) {
-                setLastRecord(history[vehicle.id][task.id]);
-            }
-        }
-    }, [vehicle.id, task.id]);
-
-    const handleSaveHistory = () => {
-        if (!historyData.km || !historyData.date) return;
-
-        // Get existing history
-        const storedHistory = localStorage.getItem('autominder_history');
-        const history = storedHistory ? JSON.parse(storedHistory) : {};
-
-        // Structure: { [vehicleId]: { [taskId]: { date, km } } }
-        if (!history[vehicle.id]) {
-            history[vehicle.id] = {};
-        }
-
-        history[vehicle.id][task.id] = {
-            date: historyData.date,
-            km: historyData.km,
-            type: isAdBlue ? 'refill' : 'service'
-        };
-
-        // Save back
-        localStorage.setItem('autominder_history', JSON.stringify(history));
-
-        // Navigate back to dashboard to see changes
-        navigate('/dashboard');
-    };
-
-    const handleLocate = () => {
-        if (!navigator.geolocation) return;
-        setLocationStatus('loading');
-        
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                setLocationStatus('found');
-                // We have coords (position.coords.latitude, position.coords.longitude)
-                // In a real app, we'd query an API. Here we assume success and update UI text.
-            },
-            () => {
-                setLocationStatus('idle'); // Error or denied
-            }
-        );
-    };
-
-    const handleRemindMe = () => {
-        // Create a reminder object
-        const newReminder = {
-            id: Date.now(),
-            vehicleId: vehicle.id,
-            vehicleName: `${vehicle.make} ${vehicle.model}`,
-            taskId: task.id,
-            title: task.title,
-            dateAdded: new Date().toISOString()
-        };
-
-        // Get existing reminders
-        const storedReminders = localStorage.getItem('autominder_reminders');
-        const reminders = storedReminders ? JSON.parse(storedReminders) : [];
-        
-        reminders.push(newReminder);
-        localStorage.setItem('autominder_reminders', JSON.stringify(reminders));
-
-        setShowToast(true);
-        setTimeout(() => setShowToast(false), 3000);
-    };
-
-    // Auto-locate on mount if permission granted previously (optional, but good UX)
-    useEffect(() => {
-        // Simple check just to set the "Find nearby" text correctly if permission is already there
-        navigator.permissions?.query({ name: 'geolocation' }).then(result => {
-            if (result.state === 'granted') {
-               // handleLocate(); // Optional: auto locate
-            }
+    // Logic specific to type
+    if (type === 'moto') {
+        tasks.push({
+            id: 'chain',
+            title: "Engrase de Cadena",
+            icon: "link",
+            color: "text-orange-600 dark:text-orange-400",
+            bg: "bg-orange-50 dark:bg-orange-900/20",
+            priorityTag: "Recurrente",
+            priorityColor: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
+            subtitle: "Cada 500-1000 km",
+            remaining: calculateRemaining('chain', 800, km, history, vehicleId, "350 KM"),
+            intervalKm: 800
         });
-    }, []);
+        tasks.push({
+            id: 'tires',
+            title: "Presión Neumáticos",
+            icon: "tire_repair",
+            color: "text-blue-600 dark:text-blue-400",
+            bg: "bg-blue-50 dark:bg-blue-900/20",
+            priorityTag: "Seguridad",
+            priorityColor: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+            subtitle: "Revisar en frío semanalmente",
+            remaining: "2 Días", // Time based, keeping static for now or need date logic
+            intervalKm: 0
+        });
+        
+        if (make === 'Ducati') {
+            tasks.push({
+                id: 'desmo',
+                title: "Desmo Service (Válvulas)",
+                icon: "settings_suggest",
+                color: "text-red-600 dark:text-red-400",
+                bg: "bg-red-50 dark:bg-red-900/20",
+                priorityTag: "Crítico",
+                priorityColor: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+                subtitle: "Reglaje desmodrómico",
+                remaining: calculateRemaining('desmo', 24000, km, history, vehicleId, "4.500 KM"),
+                intervalKm: 24000
+            });
+        }
+    } else {
+        // CARS
+        tasks.push({
+            id: 'oil',
+            title: "Aceite y Filtro",
+            icon: "oil_barrel",
+            color: "text-orange-600 dark:text-orange-400",
+            bg: "bg-orange-50 dark:bg-orange-900/20",
+            priorityTag: "Pronto",
+            priorityColor: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
+            subtitle: "Intervalo recomendado anual",
+            // Example: Interval 15,000km
+            remaining: calculateRemaining('oil', 15000, km, history, vehicleId, "2.400 KM"),
+            intervalKm: 15000
+        });
+
+        // Brand specific
+        if (['Peugeot', 'Citroën', 'DS Automobiles', 'Opel'].includes(make)) {
+             tasks.push({
+                id: 'adblue',
+                title: "Rellenar AdBlue",
+                icon: "local_gas_station",
+                color: "text-blue-600 dark:text-blue-400",
+                bg: "bg-blue-50 dark:bg-blue-900/20",
+                priorityTag: "Urgente",
+                priorityColor: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+                subtitle: "Sistema BlueHDi",
+                remaining: calculateRemaining('adblue', 10000, km, history, vehicleId, "1.200 KM"),
+                intervalKm: 10000
+            });
+            tasks.push({
+                id: 'timing_belt',
+                title: "Kit Distribución",
+                icon: "settings",
+                color: "text-gray-600 dark:text-gray-400",
+                bg: "bg-gray-100 dark:bg-gray-800",
+                priorityTag: "Largo Plazo",
+                priorityColor: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
+                subtitle: "Revisar correa húmeda",
+                remaining: calculateRemaining('timing_belt', 100000, km, history, vehicleId, "40.000 KM"),
+                intervalKm: 100000
+            });
+        }
+        
+        if (['Toyota', 'Lexus', 'Honda'].includes(make)) {
+            tasks.push({
+                id: 'hybrid',
+                title: "Chequeo Sistema Híbrido",
+                icon: "battery_charging_full",
+                color: "text-green-600 dark:text-green-400",
+                bg: "bg-green-50 dark:bg-green-900/20",
+                priorityTag: "Garantía",
+                priorityColor: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+                subtitle: "Salud de batería HV",
+                remaining: calculateRemaining('hybrid', 15000, km, history, vehicleId, "5.000 KM"),
+                intervalKm: 15000
+            });
+        }
+        
+        if (['BMW', 'Mini'].includes(make)) {
+             tasks.push({
+                id: 'brake_fluid',
+                title: "Líquido de Frenos",
+                icon: "water_drop",
+                color: "text-yellow-600 dark:text-yellow-400",
+                bg: "bg-yellow-50 dark:bg-yellow-900/20",
+                priorityTag: "Seguridad",
+                priorityColor: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+                subtitle: "Cambio cada 2 años",
+                remaining: "3 Meses", // Time based
+                intervalKm: 0
+            });
+        }
+    }
+    
+    // Generic filler if list is short
+    if (tasks.length < 3) {
+        tasks.push({
+            id: 'cabin_filter',
+            title: "Filtro Habitáculo",
+            icon: "air",
+            color: "text-green-600 dark:text-green-400",
+            bg: "bg-green-50 dark:bg-green-900/20",
+            priorityTag: "Salud",
+            priorityColor: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+            subtitle: "Aire limpio",
+            remaining: calculateRemaining('cabin_filter', 20000, km, history, vehicleId, "8.000 KM"),
+            intervalKm: 20000
+        });
+    }
+
+    return tasks;
+};
+
+const Dashboard: React.FC = () => {
+    const navigate = useNavigate();
+    const [vehicle, setVehicle] = useState<any>({
+        make: "Peugeot",
+        model: "3008",
+        mileage: "82.400",
+        type: "car",
+        id: "default"
+    });
+    const [tasks, setTasks] = useState<any[]>([]);
+    const [itvDate, setItvDate] = useState<string>('');
+    const [daysToItv, setDaysToItv] = useState<number | null>(null);
+    const [garage, setGarage] = useState<any[]>([]);
+    const [showVehicleMenu, setShowVehicleMenu] = useState(false);
+    
+    // User Name State
+    const [userName, setUserName] = useState(() => localStorage.getItem('autominder_username') || "Conductor");
+    const [isEditingName, setIsEditingName] = useState(false);
+
+    // Notifications State
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [reminders, setReminders] = useState<any[]>([]);
+
+    useEffect(() => {
+        // Migration logic
+        const oldVehicle = localStorage.getItem('autominder_vehicle');
+        const storedGarage = localStorage.getItem('autominder_garage');
+        
+        if (oldVehicle && !storedGarage) {
+            const parsedOld = JSON.parse(oldVehicle);
+            parsedOld.id = Date.now().toString();
+            parsedOld.dateAdded = new Date().toISOString();
+            
+            const newGarage = [parsedOld];
+            localStorage.setItem('autominder_garage', JSON.stringify(newGarage));
+            localStorage.setItem('autominder_active_id', parsedOld.id);
+            localStorage.removeItem('autominder_vehicle'); 
+        }
+
+        // Load Reminders
+        const storedReminders = localStorage.getItem('autominder_reminders');
+        if (storedReminders) {
+            setReminders(JSON.parse(storedReminders));
+        }
+
+        // Load active vehicle from garage
+        const garageStr = localStorage.getItem('autominder_garage');
+        const activeId = localStorage.getItem('autominder_active_id');
+        const historyStr = localStorage.getItem('autominder_history');
+        const history = historyStr ? JSON.parse(historyStr) : {};
+        
+        if (garageStr) {
+            const parsedGarage = JSON.parse(garageStr);
+            setGarage(parsedGarage);
+            
+            if (parsedGarage.length > 0) {
+                let activeVehicle = parsedGarage.find((v: any) => v.id === activeId);
+                // Fallback if active ID is invalid but garage has items
+                if (!activeVehicle) {
+                    activeVehicle = parsedGarage[0];
+                    localStorage.setItem('autominder_active_id', activeVehicle.id);
+                }
+                
+                setVehicle(activeVehicle);
+                // Pass History to calculate logic
+                setTasks(getMaintenanceTasks(
+                    activeVehicle.type, 
+                    activeVehicle.make, 
+                    parseInt(activeVehicle.mileage),
+                    history,
+                    activeVehicle.id
+                ));
+            } else {
+                navigate('/');
+            }
+        } else {
+             navigate('/');
+        }
+
+        // Load ITV Date
+        const storedItv = localStorage.getItem('autominder_itv');
+        if (storedItv) {
+            setItvDate(storedItv);
+            calculateDays(storedItv);
+        }
+    }, [navigate]);
+
+    const handleNameSave = () => {
+        setIsEditingName(false);
+        const nameToSave = userName.trim() === "" ? "Conductor" : userName;
+        setUserName(nameToSave);
+        localStorage.setItem('autominder_username', nameToSave);
+    };
+
+    const handleNameKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            handleNameSave();
+        }
+    };
+
+    const saveItvDate = (date: string) => {
+        setItvDate(date);
+        localStorage.setItem('autominder_itv', date);
+        calculateDays(date);
+    };
+
+    const calculateDays = (dateStr: string) => {
+        if (!dateStr) return;
+        const [year, month] = dateStr.split('-').map(Number);
+        const target = new Date(year, month, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const diffTime = target.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        setDaysToItv(diffDays);
+    };
+
+    const switchVehicle = (v: any) => {
+        setVehicle(v);
+        const history = JSON.parse(localStorage.getItem('autominder_history') || '{}');
+        setTasks(getMaintenanceTasks(v.type, v.make, parseInt(v.mileage), history, v.id));
+        localStorage.setItem('autominder_active_id', v.id);
+        setShowVehicleMenu(false);
+    };
+
+    const iconMap: any = {
+        'car': 'directions_car',
+        'moto': 'two_wheeler'
+    };
+
+    const formatItvDisplay = (dateStr: string) => {
+        if (!dateStr) return "";
+        const [year, month] = dateStr.split('-').map(Number);
+        const date = new Date(year, month - 1, 1);
+        return date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+    };
+
+    const handleTaskClick = (task: any) => {
+        navigate('/task-detail', { state: { task, vehicle } });
+    };
+
+    const clearReminders = () => {
+        setReminders([]);
+        localStorage.removeItem('autominder_reminders');
+        setShowNotifications(false);
+    };
 
     return (
-        <div className="bg-background-light dark:bg-background-dark text-[#111813] dark:text-gray-100 font-display min-h-screen flex flex-col overflow-x-hidden relative">
-            
-            {/* Toast Notification */}
-            <div className={`fixed top-24 left-1/2 transform -translate-x-1/2 bg-black/80 text-white px-6 py-3 rounded-full shadow-xl transition-all duration-300 z-[100] flex items-center gap-3 ${showToast ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}`}>
-                <span className="material-symbols-outlined text-primary">check_circle</span>
-                <span className="font-bold text-sm">Recordatorio establecido para 1 semana</span>
-            </div>
-
-            {/* Top Navigation */}
-            <header className="sticky top-0 z-50 bg-surface-light/95 dark:bg-surface-dark/95 backdrop-blur-sm border-b border-[#f0f5f1] dark:border-gray-800 px-6 py-4">
-                <div className="max-w-7xl mx-auto flex items-center justify-between">
-                    <div className="flex items-center gap-4 cursor-pointer" onClick={() => navigate('/dashboard')}>
+        <div className="flex flex-col min-h-screen bg-background-light dark:bg-background-dark text-text-main dark:text-text-light antialiased transition-colors duration-200">
+            {/* Top Navigation Bar */}
+            <header className="sticky top-0 z-40 w-full bg-card-light/80 dark:bg-card-dark/80 backdrop-blur-md border-b border-[#f0f5f1] dark:border-[#2a3c30]">
+                <div className="max-w-[960px] mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
                         <div className="h-8 w-8 bg-primary/20 rounded-lg flex items-center justify-center text-primary">
                             <span className="material-symbols-outlined text-2xl">directions_car</span>
                         </div>
-                        <h2 className="text-xl font-bold tracking-tight dark:text-white">Car Care App</h2>
+                        <h1 className="text-xl font-bold tracking-tight">Car Care App</h1>
                     </div>
-                    <div className="hidden md:flex flex-1 justify-end gap-8 items-center">
-                        <nav className="flex items-center gap-8">
-                            <Link to="/dashboard" className="text-sm font-medium hover:text-primary transition-colors dark:text-gray-300">Panel</Link>
-                            <Link to="/garage" className="text-sm font-medium hover:text-primary transition-colors dark:text-gray-300">Mi Garaje</Link>
-                            <a className="text-sm font-medium hover:text-primary transition-colors dark:text-gray-300" href="#">Ajustes</a>
-                        </nav>
-                        <div className="flex items-center gap-3">
-                            <DarkModeToggle />
-                            <div className="bg-center bg-no-repeat bg-cover rounded-full h-10 w-10 border-2 border-transparent hover:border-primary transition-all cursor-pointer" data-alt="User profile picture placeholder" style={{backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuCLpQLNOdVAYZZ7vfjK6FmEIorppoFeavqSdG6pnU7nu8fWvNoXYAfuA1L7_hcgJ1wVF9E69wxS4YGtdZrfDRIXZ-H463ckTIjpvX2tXdiXKxpUqtHdAqi2-lBtfix-qFc1qFnp5qT8th2y6lxSu5RtQqa_gTWDcwTDfdZZokLIePzF05nSHMQ8SzuAnkDvSpMFDjairnAe9iz25RuUxO1pxlqr_qQyFuKMSdNaIULMXHqQYzkcuURgc5YIfC__9mfdmN6BqqFIri_M")'}}></div>
-                        </div>
+                    <div className="flex gap-2 relative">
+                        {/* Notification Bell */}
+                        <button 
+                            onClick={() => setShowNotifications(!showNotifications)}
+                            className="relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-text-main dark:text-white"
+                        >
+                            <span className="material-symbols-outlined">notifications</span>
+                            {reminders.length > 0 && (
+                                <span className="absolute top-2 right-2 h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-white dark:border-[#1a2c20]"></span>
+                            )}
+                        </button>
+                        
+                        {/* Notification Dropdown */}
+                        {showNotifications && (
+                            <>
+                                <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)}></div>
+                                <div className="absolute top-full right-0 mt-2 w-80 bg-white dark:bg-[#1a2c20] rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100 origin-top-right">
+                                    <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                                        <h3 className="font-bold text-sm text-gray-900 dark:text-white">Recordatorios</h3>
+                                        {reminders.length > 0 && (
+                                            <button onClick={clearReminders} className="text-xs text-primary hover:underline">Borrar todo</button>
+                                        )}
+                                    </div>
+                                    <div className="max-h-64 overflow-y-auto">
+                                        {reminders.length === 0 ? (
+                                            <div className="p-8 text-center text-gray-500 text-sm">
+                                                No tienes recordatorios activos.
+                                            </div>
+                                        ) : (
+                                            reminders.map((rem, i) => (
+                                                <div key={i} className="p-4 border-b border-gray-50 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                                                    <div className="flex items-start gap-3">
+                                                        <div className="mt-0.5 h-2 w-2 rounded-full bg-primary shrink-0"></div>
+                                                        <div>
+                                                            <p className="text-sm font-bold text-gray-900 dark:text-white">{rem.title}</p>
+                                                            <p className="text-xs text-gray-500">{rem.vehicleName}</p>
+                                                            <p className="text-[10px] text-gray-400 mt-1">Recordar en 1 semana</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                            </>
+                        )}
+
+                        <Link to="/garage" className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-text-main dark:text-white" title="Mi Garaje">
+                            <span className="material-symbols-outlined">garage_home</span>
+                        </Link>
+                        <DarkModeToggle />
                     </div>
                 </div>
             </header>
             
-            {/* Main Content Layout */}
-            <main className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Breadcrumbs */}
-                <nav className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-6">
-                    <Link to="/dashboard" className="hover:text-primary transition-colors">Panel</Link>
-                    <span className="material-symbols-outlined text-[16px]">chevron_right</span>
-                    <Link to="/dashboard" className="hover:text-primary transition-colors capitalize">{vehicle.make} {vehicle.model}</Link>
-                    <span className="material-symbols-outlined text-[16px]">chevron_right</span>
-                    <span className="font-medium text-gray-900 dark:text-white">{task.title}</span>
-                </nav>
+            {/* Main Content */}
+            <main className="flex-1 w-full max-w-[960px] mx-auto px-4 md:px-6 py-6 pb-24">
+                {/* Greeting & Vehicle Selector */}
+                <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4 relative z-20">
+                    <div className="relative">
+                        {isEditingName ? (
+                            <input 
+                                autoFocus
+                                type="text"
+                                value={userName}
+                                onChange={(e) => setUserName(e.target.value)}
+                                onBlur={handleNameSave}
+                                onKeyDown={handleNameKeyDown}
+                                className="text-sm font-medium mb-1 bg-transparent border-b border-primary outline-none text-text-main dark:text-white w-40"
+                            />
+                        ) : (
+                            <div 
+                                onClick={() => setIsEditingName(true)}
+                                className="group flex items-center gap-2 cursor-pointer w-fit"
+                            >
+                                <p className="text-text-muted dark:text-text-muted-dark text-sm font-medium mb-1 group-hover:text-primary transition-colors">
+                                    Buenos días, {userName}
+                                </p>
+                                <span className="material-symbols-outlined text-[14px] text-text-muted opacity-0 group-hover:opacity-100 transition-opacity">edit</span>
+                            </div>
+                        )}
+                        
+                        {/* Vehicle Dropdown Trigger */}
+                        <div onClick={() => setShowVehicleMenu(!showVehicleMenu)} className="flex items-center gap-2 cursor-pointer group hover:opacity-80 transition-opacity select-none">
+                            <span className="material-symbols-outlined text-3xl text-primary">{iconMap[vehicle.type] || 'directions_car'}</span>
+                            <h2 className="text-3xl font-extrabold tracking-tight capitalize">{vehicle.make} {vehicle.model}</h2>
+                            <span className={`material-symbols-outlined text-text-muted group-hover:text-primary transition-transform duration-200 ${showVehicleMenu ? 'rotate-180' : ''}`}>expand_more</span>
+                        </div>
+
+                        {/* Dropdown Menu */}
+                        {showVehicleMenu && (
+                            <>
+                                <div className="fixed inset-0 z-40" onClick={() => setShowVehicleMenu(false)}></div>
+                                <div className="absolute top-full left-0 mt-2 w-72 bg-white dark:bg-[#1a2c20] rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100 origin-top-left">
+                                    <div className="max-h-64 overflow-y-auto py-2">
+                                        <div className="px-4 py-2 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Mis Vehículos</div>
+                                        {garage.map((v) => (
+                                            <button 
+                                                key={v.id}
+                                                onClick={() => switchVehicle(v)}
+                                                className={`w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors ${v.id === vehicle.id ? 'bg-primary/5 text-primary' : 'text-text-main dark:text-white'}`}
+                                            >
+                                                <span className="material-symbols-outlined text-xl">{iconMap[v.type] || 'directions_car'}</span>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="font-bold text-sm truncate">{v.make} {v.model}</p>
+                                                    <p className="text-xs text-text-muted dark:text-text-muted-dark">{v.mileage} KM</p>
+                                                </div>
+                                                {v.id === vehicle.id && <span className="material-symbols-outlined text-lg">check</span>}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    
+                                    {/* Linea fina y Añadir otro vehiculo */}
+                                    <div className="border-t border-gray-100 dark:border-gray-700 p-2 bg-gray-50/50 dark:bg-white/5">
+                                        <button 
+                                            onClick={() => navigate('/')} 
+                                            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-white/10 hover:text-primary hover:shadow-sm transition-all"
+                                        >
+                                            <div className="h-6 w-6 rounded-full border border-current flex items-center justify-center">
+                                                <span className="material-symbols-outlined text-sm">add</span>
+                                            </div>
+                                            Añadir otro vehículo
+                                        </button>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
+
+                    <div className="inline-flex items-center px-3 py-1 bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-full shadow-sm">
+                        <span className="material-symbols-outlined text-primary text-sm mr-2">speed</span>
+                        <span className="font-bold text-sm">{vehicle.mileage} KM</span>
+                    </div>
+                </div>
                 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
-                    {/* Left Column: Details (8 cols) */}
-                    <div className="lg:col-span-8 flex flex-col gap-8">
-                        {/* Header Section */}
-                        <div className="flex flex-col gap-4">
-                            <div className="flex flex-wrap items-start justify-between gap-4">
-                                <div>
-                                    <h1 className="text-3xl md:text-4xl font-black tracking-tight text-gray-900 dark:text-white mb-2">{task.title}</h1>
-                                    <p className="text-gray-500 dark:text-gray-400 font-medium capitalize">{vehicle.make} {vehicle.model} • {vehicle.mileage} km</p>
-                                </div>
+                {/* Main Content Grid: Tasks & Sidebar (ITV + Health) */}
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 relative z-10">
+                    
+                    {/* Left Column: Maintenance Tasks Only */}
+                    <div className="md:col-span-7 lg:col-span-8 flex flex-col gap-6">
+                        {/* Upcoming Tasks Section */}
+                        <div>
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-bold">Mantenimiento {vehicle.make}</h3>
+                                <button className="text-sm font-bold text-primary hover:underline">Ver plan completo</button>
+                            </div>
+                            <div className="flex flex-col gap-3">
+                                {tasks.map((task, idx) => (
+                                    <div key={idx} onClick={() => handleTaskClick(task)} className="group bg-card-light dark:bg-card-dark rounded-xl p-4 shadow-sm border border-gray-100 dark:border-white/5 hover:border-primary/50 transition-all cursor-pointer flex items-center gap-4">
+                                        <div className={`h-12 w-12 rounded-lg ${task.bg} flex items-center justify-center ${task.color} shrink-0`}>
+                                            <span className="material-symbols-outlined">{task.icon}</span>
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex justify-between items-start">
+                                                <h4 className="font-bold text-text-main dark:text-white truncate">{task.title}</h4>
+                                                {/* Removed Priority Tag */}
+                                            </div>
+                                            <p className="text-sm text-text-muted dark:text-text-muted-dark truncate mt-0.5">{task.subtitle}</p>
+                                        </div>
+                                        <div className="text-right shrink-0">
+                                            <p className="text-sm font-bold text-text-main dark:text-white">{task.remaining}</p>
+                                            <p className="text-xs text-text-muted dark:text-text-muted-dark">Estimado</p>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
-
-                         {/* History Section - MOVED TO TOP & REDESIGNED FOR ENGAGEMENT */}
-                         <section className="bg-white dark:bg-card-dark rounded-2xl border border-gray-100 dark:border-gray-800 shadow-md p-6 lg:p-8 relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-                            
-                            <div className="relative z-10">
-                                <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-6">
-                                    <span className="material-symbols-outlined text-primary">history_edu</span>
-                                    {isAdBlue ? "Registrar Relleno" : "Actualizar Historial"}
-                                </h3>
-
-                                {/* SHOW PREVIOUS RECORD IF EXISTS */}
-                                {lastRecord && (
-                                    <div className="mb-6 p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-dashed border-gray-200 dark:border-white/10 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                                        <div className="flex items-center gap-3">
-                                             <div className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-                                                <span className="material-symbols-outlined text-sm">history</span>
-                                             </div>
-                                             <div>
-                                                 <p className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                                     {isAdBlue ? "Último rellenado" : "Último cambio"}
-                                                 </p>
-                                                 <p className="font-bold text-gray-900 dark:text-white">
-                                                     {new Date(lastRecord.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
-                                                 </p>
-                                             </div>
-                                        </div>
-                                        <div className="pl-11 sm:pl-0">
-                                            <span className="inline-block bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-md px-2 py-1 text-sm font-mono font-medium text-gray-700 dark:text-gray-300">
-                                                {parseInt(lastRecord.km).toLocaleString('es-ES')} km
-                                            </span>
-                                        </div>
-                                    </div>
-                                )}
-                                
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                            {isAdBlue ? "Fecha de relleno" : "Fecha del cambio"}
-                                        </label>
-                                        <input 
-                                            type="date" 
-                                            value={historyData.date}
-                                            onChange={(e) => setHistoryData({...historyData, date: e.target.value})}
-                                            className="w-full h-12 px-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all font-medium outline-none"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">Kilometraje</label>
-                                        <div className="relative">
-                                            <input 
-                                                type="number" 
-                                                placeholder={vehicle.mileage}
-                                                value={historyData.km}
-                                                onChange={(e) => setHistoryData({...historyData, km: e.target.value})}
-                                                className="w-full h-12 px-4 pr-12 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all font-medium outline-none placeholder:text-gray-400"
-                                            />
-                                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400">KM</span>
-                                        </div>
-                                    </div>
-                                    <button 
-                                        onClick={handleSaveHistory}
-                                        className="h-12 w-full bg-primary hover:bg-primary-hover text-[#052912] font-bold rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all active:scale-95 flex items-center justify-center gap-2"
-                                    >
-                                        <span className="material-symbols-outlined">save</span>
-                                        Registrar
-                                    </button>
-                                </div>
-                            </div>
-                        </section>
-                        
-                        {/* Task Details Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {/* Interval Card */}
-                            <div className="bg-surface-light dark:bg-surface-dark p-5 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col gap-2">
-                                <div className="h-10 w-10 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-1">
-                                    <span className="material-symbols-outlined">calendar_month</span>
-                                </div>
-                                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Intervalo</p>
-                                <p className="text-lg font-bold text-gray-900 dark:text-white">{content.interval}</p>
-                                <p className="text-xs text-gray-400">{content.intervalSub}</p>
-                            </div>
-                            {/* Cost Card */}
-                            <div className="bg-surface-light dark:bg-surface-dark p-5 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col gap-2">
-                                <div className="h-10 w-10 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center text-green-600 dark:text-green-400 mb-1">
-                                    <span className="material-symbols-outlined">payments</span>
-                                </div>
-                                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Coste Est.</p>
-                                <p className="text-lg font-bold text-gray-900 dark:text-white">{content.cost}</p>
-                                <p className="text-xs text-gray-400">Media local</p>
-                            </div>
-                            {/* Difficulty Card */}
-                            <div className="bg-surface-light dark:bg-surface-dark p-5 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col gap-2">
-                                <div className="h-10 w-10 rounded-full bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center text-orange-600 dark:text-orange-400 mb-1">
-                                    <span className="material-symbols-outlined">handyman</span>
-                                </div>
-                                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Dificultad</p>
-                                <p className="text-lg font-bold text-gray-900 dark:text-white">{content.difficulty}</p>
-                                <p className="text-xs text-gray-400">Recomendado taller</p>
-                            </div>
-                        </div>
-                        
-                        {/* Why It Matters (Moved to Bottom) */}
-                        <section className="relative overflow-hidden rounded-2xl bg-surface-light dark:bg-surface-dark border border-gray-100 dark:border-gray-800 shadow-sm group">
-                            <div className="absolute top-0 left-0 w-1.5 h-full bg-primary"></div>
-                            <div className="p-6 md:p-8 flex flex-col md:flex-row gap-6 items-start md:items-center">
-                                <div className="flex-1 space-y-3">
-                                    <div className="flex items-center gap-2 text-primary font-bold uppercase tracking-wider text-xs">
-                                        <span className="material-symbols-outlined text-lg">verified_user</span>
-                                        <span>Por qué es importante</span>
-                                    </div>
-                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">Seguridad y Rendimiento</h3>
-                                    <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                                        {content.description}
-                                    </p>
-                                </div>
-                                <div className="shrink-0 w-full md:w-48 aspect-video md:aspect-square rounded-xl bg-gray-100 dark:bg-gray-800 overflow-hidden relative">
-                                    <div className="w-full h-full bg-center bg-cover" style={{backgroundImage: `url('${content.image}')`}}></div>
-                                </div>
-                            </div>
-                        </section>
                     </div>
                     
-                    {/* Right Column: Actions & Context (4 cols) */}
-                    <div className="lg:col-span-4 flex flex-col gap-6">
-                        {/* Action Card (Sticky on desktop) */}
-                        <div className="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 p-6 sticky top-24">
-                            <h3 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">Acciones</h3>
-                            <div className="flex flex-col gap-3">
-                                <button onClick={() => navigate('/garage')} className="w-full bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-white font-semibold py-3 px-6 rounded-xl border border-gray-200 dark:border-gray-700 flex items-center justify-center gap-3 transition-colors">
-                                    <span className="material-symbols-outlined">map</span>
-                                    Buscar talleres
-                                </button>
-                                <button 
-                                    onClick={handleRemindMe}
-                                    className="w-full mt-2 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 font-medium py-2 text-sm flex items-center justify-center gap-2 transition-colors"
-                                >
-                                    <span className="material-symbols-outlined text-lg">snooze</span>
-                                    Recordar en 1 semana
-                                </button>
-                            </div>
-                        </div>
-                        
-                        {/* Map Widget */}
-                        <div className="bg-surface-light dark:bg-surface-dark rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden">
-                            <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
-                                <h3 className="font-bold text-gray-900 dark:text-white text-sm">
-                                    {locationStatus === 'found' ? 'Mejor valorados cerca de ti' : 'Mejor valorados'}
-                                </h3>
-                                <button 
-                                    onClick={handleLocate}
-                                    disabled={locationStatus === 'loading' || locationStatus === 'found'}
-                                    className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
-                                >
-                                    {locationStatus === 'loading' ? (
-                                        <span className="animate-spin material-symbols-outlined text-xs">progress_activity</span>
-                                    ) : locationStatus === 'found' ? (
-                                        <span className="material-symbols-outlined text-xs">my_location</span>
-                                    ) : (
-                                        <span className="material-symbols-outlined text-xs">near_me</span>
-                                    )}
-                                    {locationStatus === 'found' ? 'Ubicado' : 'Localizarme'}
-                                </button>
-                            </div>
-                            {/* Map Image */}
-                            <div className="relative h-48 w-full bg-gray-200 group">
-                                <div className={`w-full h-full bg-cover bg-center transition-opacity duration-500 ${locationStatus === 'loading' ? 'opacity-50' : 'opacity-100'}`} style={{backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuB5RVjSKcYVRjeYeDNYjjGtGy8WAwPGt-xaC46tYne2ne_V8R5eVOp48ZgDa6CaCLqRVAXD-MiGfjAOipC_FUvdAoclAhRmUC-7YBSmW-7o1aT1mDZCLorK2vKN6tJf9AcYWsQeYqQaFKwfBFf6nk1mrgwp4GTmH74tNNFznN25SChdYD3vsslKXAqaTgE3PnifhmsLzwzJ82krXgk3Hrm9-_IrHi2ZKRIJlGtXPqyxBiOmJ8a4E3JovLoXgmtm522YUcYarOMM9FR3')"}}>
-                                    {/* Fake Pins */}
-                                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                                        <span className="material-symbols-outlined text-primary text-4xl drop-shadow-md animate-bounce">location_on</span>
-                                    </div>
-                                    <div className="absolute top-1/3 left-1/4">
-                                        <span className="material-symbols-outlined text-red-500 text-3xl drop-shadow-md">location_on</span>
-                                    </div>
+                    {/* Right Sidebar: ITV & Health Status */}
+                    <div className="md:col-span-5 lg:col-span-4 flex flex-col gap-6">
+                        {/* ITV Module */}
+                        <div className="bg-card-light dark:bg-card-dark rounded-2xl p-6 shadow-soft border border-gray-100 dark:border-white/5 relative overflow-hidden">
+                            <div className="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 className="font-bold text-lg text-text-main dark:text-white">Próxima ITV</h3>
+                                    <p className="text-xs text-text-muted dark:text-text-muted-dark">Inspección Técnica</p>
                                 </div>
-                                {locationStatus === 'idle' && (
-                                    <div onClick={handleLocate} className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                                        <span className="text-white font-bold flex items-center gap-2">
-                                            <span className="material-symbols-outlined">near_me</span>
-                                            Usar mi ubicación
+                                <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${daysToItv !== null && daysToItv < 30 ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' : 'bg-primary/20 text-primary'}`}>
+                                    <span className="material-symbols-outlined">event_available</span>
+                                </div>
+                            </div>
+                            
+                            <div className="mb-4">
+                                {itvDate ? (
+                                    <div className={`text-center py-2 bg-background-light dark:bg-white/5 rounded-xl border border-dashed ${daysToItv !== null && daysToItv < 0 ? 'border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-900/10' : 'border-gray-200 dark:border-gray-700'}`}>
+                                        {daysToItv !== null && daysToItv < 0 ? (
+                                            <span className="text-3xl font-extrabold text-red-600 dark:text-red-400 block tracking-wider">
+                                                CADUCADA
+                                            </span>
+                                        ) : (
+                                            <span className="text-3xl font-extrabold text-text-main dark:text-white block">
+                                                {daysToItv} <span className="text-sm font-normal text-text-muted">días</span>
+                                            </span>
+                                        )}
+                                        <span className={`text-xs font-semibold uppercase tracking-wide capitalize ${daysToItv !== null && daysToItv < 0 ? 'text-red-500/80 dark:text-red-400/70' : 'text-text-muted'}`}>
+                                            {formatItvDisplay(itvDate)}
                                         </span>
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-4 bg-background-light dark:bg-white/5 rounded-xl border border-dashed border-gray-200 dark:border-gray-700">
+                                        <p className="text-sm text-text-muted">No has configurado fecha</p>
                                     </div>
                                 )}
                             </div>
-                            {/* Mechanic List */}
-                            <div className="divide-y divide-gray-100 dark:divide-gray-800">
-                                <div className="p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer group">
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <h4 className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-primary transition-colors">Talleres AutoPro</h4>
-                                            <p className="text-xs text-gray-500">{locationStatus === 'found' ? 'a 1.2 km' : 'Madrid Centro'}</p>
-                                        </div>
-                                        <div className="flex items-center gap-1 bg-green-100 dark:bg-green-900/30 px-1.5 py-0.5 rounded text-xs font-bold text-green-700 dark:text-green-400">
-                                            <span>4.9</span>
-                                            <span className="material-symbols-outlined text-[10px]">star</span>
-                                        </div>
+                            
+                            <label className="block w-full">
+                                <span className="text-xs font-bold text-text-muted dark:text-text-muted-dark mb-1 block">Vencimiento (Mes/Año)</span>
+                                <input 
+                                    type="month" 
+                                    value={itvDate} 
+                                    onChange={(e) => saveItvDate(e.target.value)}
+                                    className="block w-full text-sm text-text-main dark:text-white bg-white dark:bg-[#15231b] border border-gray-200 dark:border-[#2a3c30] rounded-lg px-3 py-2 focus:ring-primary focus:border-primary"
+                                />
+                            </label>
+                        </div>
+
+                         {/* Health Status Card (Moved Here - Below ITV) */}
+                         <div className="bg-card-light dark:bg-card-dark rounded-2xl p-6 shadow-soft border border-gray-100 dark:border-white/5 relative overflow-hidden group">
+                            {/* Abstract Background Decoration */}
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+                            <div className="flex flex-col items-center gap-6 relative z-10">
+                                {/* Circular Progress */}
+                                <div className="relative h-40 w-40 shrink-0">
+                                    <svg className="h-full w-full -rotate-90 transform" viewBox="0 0 100 100">
+                                        <circle className="text-gray-100 dark:text-white/5" cx="50" cy="50" fill="transparent" r="42" stroke="currentColor" strokeWidth="8"></circle>
+                                        <circle className="text-primary transition-all duration-1000 ease-out" cx="50" cy="50" fill="transparent" r="42" stroke="currentColor" strokeDasharray="264" strokeDashoffset="40" strokeLinecap="round" strokeWidth="8"></circle>
+                                    </svg>
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                                        <span className="text-3xl font-extrabold text-text-main dark:text-white">85%</span>
+                                        <span className="text-[10px] font-semibold uppercase tracking-wider text-text-muted dark:text-text-muted-dark">Salud</span>
                                     </div>
                                 </div>
-                                <div className="p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer group">
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <h4 className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-primary transition-colors">Mecánica Rápida</h4>
-                                            <p className="text-xs text-gray-500">{locationStatus === 'found' ? 'a 2.5 km' : 'Zona Norte'}</p>
-                                        </div>
-                                        <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-xs font-bold text-gray-700 dark:text-gray-300">
-                                            <span>4.6</span>
-                                            <span className="material-symbols-outlined text-[10px]">star</span>
-                                        </div>
+                                {/* Text Content */}
+                                <div className="flex flex-col text-center w-full">
+                                    <h3 className="text-lg font-bold mb-2">Todo en orden</h3>
+                                    <p className="text-sm text-text-muted dark:text-text-muted-dark mb-4 leading-relaxed">
+                                        Hemos cargado el plan oficial de {vehicle.make}. Tienes tareas pendientes.
+                                    </p>
+                                    <div className="flex justify-center">
+                                        <span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-bold">
+                                            <span className="material-symbols-outlined text-sm mr-1">check_circle</span>
+                                            General OK
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -448,8 +566,15 @@ const TaskDetail: React.FC = () => {
                     </div>
                 </div>
             </main>
+            {/* Floating Action Button (FAB) */}
+            <div className="fixed bottom-6 right-6 z-50 md:hidden">
+                <button className="flex items-center justify-center gap-2 h-14 pl-5 pr-6 bg-primary hover:bg-primary-hover text-[#111813] rounded-full shadow-lg shadow-primary/30 transition-transform active:scale-95">
+                    <span className="material-symbols-outlined text-2xl">add</span>
+                    <span className="font-bold text-base">KM</span>
+                </button>
+            </div>
         </div>
     );
 };
 
-export default TaskDetail;
+export default Dashboard;
