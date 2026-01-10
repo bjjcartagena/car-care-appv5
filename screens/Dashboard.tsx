@@ -268,8 +268,15 @@ const Dashboard: React.FC = () => {
         id: "default"
     });
     const [tasks, setTasks] = useState<any[]>([]);
+    
+    // ITV State
     const [itvDate, setItvDate] = useState<string>('');
     const [daysToItv, setDaysToItv] = useState<number | null>(null);
+
+    // Insurance State
+    const [insuranceDate, setInsuranceDate] = useState<string>('');
+    const [daysToInsurance, setDaysToInsurance] = useState<number | null>(null);
+
     const [garage, setGarage] = useState<any[]>([]);
     const [showVehicleMenu, setShowVehicleMenu] = useState(false);
     
@@ -343,6 +350,13 @@ const Dashboard: React.FC = () => {
             setItvDate(storedItv);
             calculateDays(storedItv);
         }
+
+        // Load Insurance Date
+        const storedInsurance = localStorage.getItem('autominder_insurance');
+        if (storedInsurance) {
+            setInsuranceDate(storedInsurance);
+            calculateInsuranceDays(storedInsurance);
+        }
     }, [navigate]);
 
     const handleNameSave = () => {
@@ -375,6 +389,22 @@ const Dashboard: React.FC = () => {
         setDaysToItv(diffDays);
     };
 
+    const saveInsuranceDate = (date: string) => {
+        setInsuranceDate(date);
+        localStorage.setItem('autominder_insurance', date);
+        calculateInsuranceDays(date);
+    };
+
+    const calculateInsuranceDays = (dateStr: string) => {
+        if (!dateStr) return;
+        const target = new Date(dateStr);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const diffTime = target.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        setDaysToInsurance(diffDays);
+    };
+
     const switchVehicle = (v: any) => {
         setVehicle(v);
         const history = JSON.parse(localStorage.getItem('autominder_history') || '{}');
@@ -393,6 +423,12 @@ const Dashboard: React.FC = () => {
         const [year, month] = dateStr.split('-').map(Number);
         const date = new Date(year, month - 1, 1);
         return date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+    };
+
+    const formatDateDisplay = (dateStr: string) => {
+        if (!dateStr) return "";
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
     };
 
     const handleTaskClick = (task: any) => {
@@ -628,6 +664,52 @@ const Dashboard: React.FC = () => {
                                     type="month" 
                                     value={itvDate} 
                                     onChange={(e) => saveItvDate(e.target.value)}
+                                    className="block w-full text-sm text-text-main dark:text-white bg-white dark:bg-[#15231b] border border-gray-200 dark:border-[#2a3c30] rounded-lg px-3 py-2 focus:ring-primary focus:border-primary"
+                                />
+                            </label>
+                        </div>
+
+                         {/* Insurance Module - NEW */}
+                        <div className="bg-card-light dark:bg-card-dark rounded-2xl p-6 shadow-soft border border-gray-100 dark:border-white/5 relative overflow-hidden">
+                            <div className="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 className="font-bold text-lg text-text-main dark:text-white">Seguro</h3>
+                                    <p className="text-xs text-text-muted dark:text-text-muted-dark">Fecha de renovación</p>
+                                </div>
+                                <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${daysToInsurance !== null && daysToInsurance < 30 ? (daysToInsurance < 0 ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400') : 'bg-primary/20 text-primary'}`}>
+                                    <span className="material-symbols-outlined">health_and_safety</span>
+                                </div>
+                            </div>
+                            
+                            <div className="mb-4">
+                                {insuranceDate ? (
+                                    <div className={`text-center py-2 bg-background-light dark:bg-white/5 rounded-xl border border-dashed ${daysToInsurance !== null && daysToInsurance < 0 ? 'border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-900/10' : (daysToInsurance !== null && daysToInsurance < 30 ? 'border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-900/10' : 'border-gray-200 dark:border-gray-700')}`}>
+                                        {daysToInsurance !== null && daysToInsurance < 0 ? (
+                                            <span className="text-3xl font-extrabold text-red-600 dark:text-red-400 block tracking-wider">
+                                                VENCIDO
+                                            </span>
+                                        ) : (
+                                            <span className={`text-3xl font-extrabold block ${daysToInsurance !== null && daysToInsurance < 30 ? 'text-amber-600 dark:text-amber-400' : 'text-text-main dark:text-white'}`}>
+                                                {daysToInsurance} <span className="text-sm font-normal text-text-muted">días</span>
+                                            </span>
+                                        )}
+                                        <span className={`text-xs font-semibold uppercase tracking-wide capitalize ${daysToInsurance !== null && daysToInsurance < 0 ? 'text-red-500/80 dark:text-red-400/70' : (daysToInsurance !== null && daysToInsurance < 30 ? 'text-amber-600/80 dark:text-amber-400/70' : 'text-text-muted')}`}>
+                                            {formatDateDisplay(insuranceDate)}
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-4 bg-background-light dark:bg-white/5 rounded-xl border border-dashed border-gray-200 dark:border-gray-700">
+                                        <p className="text-sm text-text-muted">Sin fecha de seguro</p>
+                                    </div>
+                                )}
+                            </div>
+                            
+                            <label className="block w-full">
+                                <span className="text-xs font-bold text-text-muted dark:text-text-muted-dark mb-1 block">Vencimiento (Día exacto)</span>
+                                <input 
+                                    type="date" 
+                                    value={insuranceDate} 
+                                    onChange={(e) => saveInsuranceDate(e.target.value)}
                                     className="block w-full text-sm text-text-main dark:text-white bg-white dark:bg-[#15231b] border border-gray-200 dark:border-[#2a3c30] rounded-lg px-3 py-2 focus:ring-primary focus:border-primary"
                                 />
                             </label>
