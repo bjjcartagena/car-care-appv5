@@ -70,17 +70,19 @@ const TaskDetail: React.FC = () => {
     
     // Get state from navigation
     const { task, vehicle } = location.state || { 
-        task: { title: "Mantenimiento General", subtitle: "Revisión periódica" }, 
-        vehicle: { make: 'Mi Vehículo', model: '', mileage: '0' } 
+        task: { id: "unknown", title: "Mantenimiento General", subtitle: "Revisión periódica" }, 
+        vehicle: { id: "unknown", make: 'Mi Vehículo', model: '', mileage: '0' } 
     };
 
     const content = getTaskContent(task.title);
     
+    // Check if it's AdBlue to change labels
+    const isAdBlue = task.title.toLowerCase().includes('adblue');
+    
     // State for History
     const [historyData, setHistoryData] = useState({
-        date: '',
-        km: '',
-        shop: ''
+        date: new Date().toISOString().split('T')[0], // Default to today
+        km: vehicle.mileage || ''
     });
 
     // Toast Notification State
@@ -90,8 +92,28 @@ const TaskDetail: React.FC = () => {
     const [locationStatus, setLocationStatus] = useState<'idle' | 'loading' | 'found'>('idle');
 
     const handleSaveHistory = () => {
-        // Logic to save would go here
-        console.log("Guardando historial:", historyData);
+        if (!historyData.km || !historyData.date) return;
+
+        // Get existing history
+        const storedHistory = localStorage.getItem('autominder_history');
+        const history = storedHistory ? JSON.parse(storedHistory) : {};
+
+        // Structure: { [vehicleId]: { [taskId]: { date, km } } }
+        if (!history[vehicle.id]) {
+            history[vehicle.id] = {};
+        }
+
+        history[vehicle.id][task.id] = {
+            date: historyData.date,
+            km: historyData.km,
+            type: isAdBlue ? 'refill' : 'service'
+        };
+
+        // Save back
+        localStorage.setItem('autominder_history', JSON.stringify(history));
+
+        // Navigate back to dashboard to see changes
+        navigate('/dashboard');
     };
 
     const handleLocate = () => {
@@ -111,6 +133,23 @@ const TaskDetail: React.FC = () => {
     };
 
     const handleRemindMe = () => {
+        // Create a reminder object
+        const newReminder = {
+            id: Date.now(),
+            vehicleId: vehicle.id,
+            vehicleName: `${vehicle.make} ${vehicle.model}`,
+            taskId: task.id,
+            title: task.title,
+            dateAdded: new Date().toISOString()
+        };
+
+        // Get existing reminders
+        const storedReminders = localStorage.getItem('autominder_reminders');
+        const reminders = storedReminders ? JSON.parse(storedReminders) : [];
+        
+        reminders.push(newReminder);
+        localStorage.setItem('autominder_reminders', JSON.stringify(reminders));
+
         setShowToast(true);
         setTimeout(() => setShowToast(false), 3000);
     };
@@ -188,12 +227,14 @@ const TaskDetail: React.FC = () => {
                             <div className="relative z-10">
                                 <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-6">
                                     <span className="material-symbols-outlined text-primary">history_edu</span>
-                                    Actualizar Historial
+                                    {isAdBlue ? "Registrar Relleno" : "Actualizar Historial"}
                                 </h3>
                                 
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
                                     <div className="space-y-2">
-                                        <label className="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">Fecha del cambio</label>
+                                        <label className="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                            {isAdBlue ? "Fecha de relleno" : "Fecha del cambio"}
+                                        </label>
                                         <input 
                                             type="date" 
                                             value={historyData.date}
