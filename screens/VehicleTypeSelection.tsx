@@ -1,9 +1,20 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DarkModeToggle from '../components/DarkModeToggle';
 
 const VehicleTypeSelection: React.FC = () => {
     const navigate = useNavigate();
+    const [hasVehicles, setHasVehicles] = useState(false);
+
+    useEffect(() => {
+        const garageStr = localStorage.getItem('autominder_garage');
+        if (garageStr) {
+            const garage = JSON.parse(garageStr);
+            if (garage.length > 0) {
+                setHasVehicles(true);
+            }
+        }
+    }, []);
 
     const selectType = (type: 'car' | 'moto') => {
         navigate('/setup-profile', { state: { vehicleType: type } });
@@ -20,6 +31,15 @@ const VehicleTypeSelection: React.FC = () => {
                     <h2 className="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-tight">Car Care App</h2>
                 </div>
                 <div className="flex gap-2">
+                     {hasVehicles && (
+                        <button 
+                            onClick={() => navigate('/dashboard')}
+                            className="flex items-center justify-center px-4 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors font-bold text-sm mr-1 gap-2"
+                        >
+                             <span className="material-symbols-outlined text-lg">garage_home</span>
+                             <span className="hidden sm:inline">Mi Garaje</span>
+                        </button>
+                     )}
                      <DarkModeToggle />
                     <button className="flex items-center justify-center overflow-hidden rounded-lg h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                         <span className="material-symbols-outlined">settings</span>
@@ -34,7 +54,9 @@ const VehicleTypeSelection: React.FC = () => {
                     {/* Progress Bar Section */}
                     <div className="flex flex-col gap-3 w-full">
                         <div className="flex gap-6 justify-between items-center">
-                            <p className="text-slate-900 dark:text-white text-sm font-bold uppercase tracking-wide">Paso 1 de 4</p>
+                            <p className="text-slate-900 dark:text-white text-sm font-bold uppercase tracking-wide">
+                                {hasVehicles ? 'Nuevo Vehículo' : 'Paso 1 de 4'}
+                            </p>
                             <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Configuración</p>
                         </div>
                         <div className="rounded-full bg-slate-200 dark:bg-slate-800 h-2 w-full overflow-hidden">
@@ -45,7 +67,7 @@ const VehicleTypeSelection: React.FC = () => {
                     {/* Page Heading */}
                     <div className="flex flex-col gap-3 text-center sm:text-left mt-4">
                         <h1 className="text-slate-900 dark:text-white text-4xl sm:text-5xl font-black leading-tight tracking-tight">
-                            Vamos a prepararlo todo.
+                            {hasVehicles ? 'Añadir otro vehículo.' : 'Vamos a prepararlo todo.'}
                         </h1>
                         <p className="text-slate-500 dark:text-slate-400 text-lg font-medium leading-relaxed max-w-xl">
                             Selecciona tu tipo de vehículo para personalizar el programa de mantenimiento y los recordatorios.
@@ -89,9 +111,16 @@ const VehicleTypeSelection: React.FC = () => {
                             <span className="material-symbols-outlined text-base">timer</span>
                             Configuración en menos de 2 minutos.
                         </p>
-                        <a className="inline-block mt-4 text-sm font-semibold text-slate-400 hover:text-primary transition-colors" href="#">
-                            Aún no tengo vehículo
-                        </a>
+                        {!hasVehicles && (
+                            <a className="inline-block mt-4 text-sm font-semibold text-slate-400 hover:text-primary transition-colors" href="#">
+                                Aún no tengo vehículo
+                            </a>
+                        )}
+                        {hasVehicles && (
+                             <button onClick={() => navigate('/dashboard')} className="inline-block mt-4 text-sm font-bold text-primary hover:underline transition-colors">
+                                Cancelar y volver al Panel
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
