@@ -148,17 +148,11 @@ const Dashboard: React.FC = () => {
     const [garage, setGarage] = useState<any[]>([]);
     const [showVehicleMenu, setShowVehicleMenu] = useState(false);
     
-    // User Name State
-    const [userName, setUserName] = useState("Alex");
+    // User Name State - Lazy initialization to read from storage first
+    const [userName, setUserName] = useState(() => localStorage.getItem('autominder_username') || "Conductor");
     const [isEditingName, setIsEditingName] = useState(false);
 
     useEffect(() => {
-        // Load Username
-        const storedName = localStorage.getItem('autominder_username');
-        if (storedName) {
-            setUserName(storedName);
-        }
-
         // Migration logic: check if old single object exists and new garage doesn't
         const oldVehicle = localStorage.getItem('autominder_vehicle');
         const storedGarage = localStorage.getItem('autominder_garage');
@@ -212,8 +206,9 @@ const Dashboard: React.FC = () => {
 
     const handleNameSave = () => {
         setIsEditingName(false);
-        if (userName.trim() === "") setUserName("Conductor");
-        localStorage.setItem('autominder_username', userName || "Conductor");
+        const nameToSave = userName.trim() === "" ? "Conductor" : userName;
+        setUserName(nameToSave);
+        localStorage.setItem('autominder_username', nameToSave);
     };
 
     const handleNameKeyDown = (e: React.KeyboardEvent) => {
@@ -367,10 +362,10 @@ const Dashboard: React.FC = () => {
                     </div>
                 </div>
                 
-                {/* Main Content Grid: Tasks & Sidebar (ITV) */}
+                {/* Main Content Grid: Tasks & Sidebar (ITV + Health) */}
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6 relative z-10">
                     
-                    {/* Left Column: Maintenance Tasks + Health Status */}
+                    {/* Left Column: Maintenance Tasks Only */}
                     <div className="md:col-span-7 lg:col-span-8 flex flex-col gap-6">
                         {/* Upcoming Tasks Section */}
                         <div>
@@ -401,41 +396,9 @@ const Dashboard: React.FC = () => {
                                 ))}
                             </div>
                         </div>
-
-                         {/* Health Status Card (Moved Here) */}
-                        <div className="bg-card-light dark:bg-card-dark rounded-2xl p-6 shadow-soft border border-gray-100 dark:border-white/5 relative overflow-hidden group">
-                            {/* Abstract Background Decoration */}
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-                            <div className="flex flex-col sm:flex-row items-center gap-8 relative z-10">
-                                {/* Circular Progress */}
-                                <div className="relative h-48 w-48 shrink-0">
-                                    <svg className="h-full w-full -rotate-90 transform" viewBox="0 0 100 100">
-                                        <circle className="text-gray-100 dark:text-white/5" cx="50" cy="50" fill="transparent" r="42" stroke="currentColor" strokeWidth="8"></circle>
-                                        <circle className="text-primary transition-all duration-1000 ease-out" cx="50" cy="50" fill="transparent" r="42" stroke="currentColor" strokeDasharray="264" strokeDashoffset="40" strokeLinecap="round" strokeWidth="8"></circle>
-                                    </svg>
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                                        <span className="text-4xl font-extrabold text-text-main dark:text-white">85%</span>
-                                        <span className="text-xs font-semibold uppercase tracking-wider text-text-muted dark:text-text-muted-dark">Salud</span>
-                                    </div>
-                                </div>
-                                {/* Text Content */}
-                                <div className="flex flex-col text-center sm:text-left">
-                                    <h3 className="text-xl font-bold mb-2">Todo en orden</h3>
-                                    <p className="text-text-muted dark:text-text-muted-dark mb-6 leading-relaxed">
-                                        Hemos cargado el plan oficial de {vehicle.make}. Tienes tareas pendientes para mantener la garantía y fiabilidad.
-                                    </p>
-                                    <div className="flex flex-wrap justify-center sm:justify-start gap-3">
-                                        <span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-bold">
-                                            <span className="material-symbols-outlined text-sm mr-1">check_circle</span>
-                                            General OK
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                     
-                    {/* Right Sidebar: ITV Only */}
+                    {/* Right Sidebar: ITV & Health Status */}
                     <div className="md:col-span-5 lg:col-span-4 flex flex-col gap-6">
                         {/* ITV Module */}
                         <div className="bg-card-light dark:bg-card-dark rounded-2xl p-6 shadow-soft border border-gray-100 dark:border-white/5 relative overflow-hidden">
@@ -481,6 +444,38 @@ const Dashboard: React.FC = () => {
                                     className="block w-full text-sm text-text-main dark:text-white bg-white dark:bg-[#15231b] border border-gray-200 dark:border-[#2a3c30] rounded-lg px-3 py-2 focus:ring-primary focus:border-primary"
                                 />
                             </label>
+                        </div>
+
+                         {/* Health Status Card (Moved Here - Below ITV) */}
+                         <div className="bg-card-light dark:bg-card-dark rounded-2xl p-6 shadow-soft border border-gray-100 dark:border-white/5 relative overflow-hidden group">
+                            {/* Abstract Background Decoration */}
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+                            <div className="flex flex-col items-center gap-6 relative z-10">
+                                {/* Circular Progress */}
+                                <div className="relative h-40 w-40 shrink-0">
+                                    <svg className="h-full w-full -rotate-90 transform" viewBox="0 0 100 100">
+                                        <circle className="text-gray-100 dark:text-white/5" cx="50" cy="50" fill="transparent" r="42" stroke="currentColor" strokeWidth="8"></circle>
+                                        <circle className="text-primary transition-all duration-1000 ease-out" cx="50" cy="50" fill="transparent" r="42" stroke="currentColor" strokeDasharray="264" strokeDashoffset="40" strokeLinecap="round" strokeWidth="8"></circle>
+                                    </svg>
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                                        <span className="text-3xl font-extrabold text-text-main dark:text-white">85%</span>
+                                        <span className="text-[10px] font-semibold uppercase tracking-wider text-text-muted dark:text-text-muted-dark">Salud</span>
+                                    </div>
+                                </div>
+                                {/* Text Content */}
+                                <div className="flex flex-col text-center w-full">
+                                    <h3 className="text-lg font-bold mb-2">Todo en orden</h3>
+                                    <p className="text-sm text-text-muted dark:text-text-muted-dark mb-4 leading-relaxed">
+                                        Hemos cargado el plan oficial de {vehicle.make}. Tienes tareas pendientes.
+                                    </p>
+                                    <div className="flex justify-center">
+                                        <span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-bold">
+                                            <span className="material-symbols-outlined text-sm mr-1">check_circle</span>
+                                            General OK
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
