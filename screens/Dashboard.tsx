@@ -10,6 +10,7 @@ const getMaintenanceTasks = (type: string, make: string, km: number) => {
     // Logic specific to type
     if (type === 'moto') {
         tasks.push({
+            id: 'chain',
             title: "Engrase de Cadena",
             icon: "link",
             color: "text-orange-600 dark:text-orange-400",
@@ -20,6 +21,7 @@ const getMaintenanceTasks = (type: string, make: string, km: number) => {
             remaining: "350 KM"
         });
         tasks.push({
+            id: 'tires',
             title: "Presión Neumáticos",
             icon: "tire_repair",
             color: "text-blue-600 dark:text-blue-400",
@@ -32,6 +34,7 @@ const getMaintenanceTasks = (type: string, make: string, km: number) => {
         
         if (make === 'Ducati') {
             tasks.push({
+                id: 'desmo',
                 title: "Desmo Service (Válvulas)",
                 icon: "settings_suggest",
                 color: "text-red-600 dark:text-red-400",
@@ -43,6 +46,7 @@ const getMaintenanceTasks = (type: string, make: string, km: number) => {
             });
         } else if (make === 'BMW Motorrad') {
              tasks.push({
+                id: 'cardan',
                 title: "Aceite Cardán",
                 icon: "settings_applications",
                 color: "text-purple-600 dark:text-purple-400",
@@ -56,6 +60,7 @@ const getMaintenanceTasks = (type: string, make: string, km: number) => {
     } else {
         // CARS
         tasks.push({
+            id: 'oil',
             title: "Aceite y Filtro",
             icon: "oil_barrel",
             color: "text-orange-600 dark:text-orange-400",
@@ -69,6 +74,7 @@ const getMaintenanceTasks = (type: string, make: string, km: number) => {
         // Brand specific
         if (['Peugeot', 'Citroën', 'DS Automobiles', 'Opel'].includes(make)) {
              tasks.push({
+                id: 'adblue',
                 title: "Rellenar AdBlue",
                 icon: "local_gas_station",
                 color: "text-blue-600 dark:text-blue-400",
@@ -79,6 +85,7 @@ const getMaintenanceTasks = (type: string, make: string, km: number) => {
                 remaining: "1.200 KM"
             });
             tasks.push({
+                id: 'timing_belt',
                 title: "Kit Distribución",
                 icon: "settings",
                 color: "text-gray-600 dark:text-gray-400",
@@ -92,6 +99,7 @@ const getMaintenanceTasks = (type: string, make: string, km: number) => {
         
         if (['Toyota', 'Lexus', 'Honda'].includes(make)) {
             tasks.push({
+                id: 'hybrid',
                 title: "Chequeo Sistema Híbrido",
                 icon: "battery_charging_full",
                 color: "text-green-600 dark:text-green-400",
@@ -105,6 +113,7 @@ const getMaintenanceTasks = (type: string, make: string, km: number) => {
         
         if (['BMW', 'Mini'].includes(make)) {
              tasks.push({
+                id: 'brake_fluid',
                 title: "Líquido de Frenos",
                 icon: "water_drop",
                 color: "text-yellow-600 dark:text-yellow-400",
@@ -120,6 +129,7 @@ const getMaintenanceTasks = (type: string, make: string, km: number) => {
     // Generic filler if list is short
     if (tasks.length < 3) {
         tasks.push({
+            id: 'cabin_filter',
             title: "Filtro Habitáculo",
             icon: "air",
             color: "text-green-600 dark:text-green-400",
@@ -259,6 +269,10 @@ const Dashboard: React.FC = () => {
         return date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
     };
 
+    const handleTaskClick = (task: any) => {
+        navigate('/task-detail', { state: { task, vehicle } });
+    };
+
     return (
         <div className="flex flex-col min-h-screen bg-background-light dark:bg-background-dark text-text-main dark:text-text-light antialiased transition-colors duration-200">
             {/* Top Navigation Bar */}
@@ -375,7 +389,7 @@ const Dashboard: React.FC = () => {
                             </div>
                             <div className="flex flex-col gap-3">
                                 {tasks.map((task, idx) => (
-                                    <div key={idx} onClick={() => navigate('/task-detail')} className="group bg-card-light dark:bg-card-dark rounded-xl p-4 shadow-sm border border-gray-100 dark:border-white/5 hover:border-primary/50 transition-all cursor-pointer flex items-center gap-4">
+                                    <div key={idx} onClick={() => handleTaskClick(task)} className="group bg-card-light dark:bg-card-dark rounded-xl p-4 shadow-sm border border-gray-100 dark:border-white/5 hover:border-primary/50 transition-all cursor-pointer flex items-center gap-4">
                                         <div className={`h-12 w-12 rounded-lg ${task.bg} flex items-center justify-center ${task.color} shrink-0`}>
                                             <span className="material-symbols-outlined">{task.icon}</span>
                                         </div>
