@@ -89,18 +89,51 @@ const getMaintenanceTasks = (type: string, make: string, km: number, history: an
             intervalKm: 6000
         });
 
-        tasks.push({
-            id: 'chain',
-            title: "Engrase de Cadena",
-            icon: "link",
-            color: "text-emerald-600 dark:text-emerald-400",
-            bg: "bg-emerald-50 dark:bg-emerald-900/20",
-            priorityTag: "Recurrente",
-            priorityColor: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-            subtitle: "Cada 500-1000 km",
-            remaining: calculateRemaining('chain', 800, km, history, vehicleId, "350 KM"),
-            intervalKm: 800
-        });
+        // Final Drive Logic (Chain vs Shaft vs Belt)
+        const isCardan = ['BMW Motorrad', 'Moto Guzzi', 'Triumph'].includes(make);
+        const isBelt = ['Harley-Davidson', 'Indian'].includes(make);
+
+        if (isCardan) {
+             tasks.push({
+                id: 'cardan_oil',
+                title: "Aceite de Cardán",
+                icon: "settings_suggest",
+                color: "text-slate-600 dark:text-slate-400",
+                bg: "bg-slate-100 dark:bg-slate-800",
+                priorityTag: "Mantenimiento",
+                priorityColor: "bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-400",
+                subtitle: "Cambiar cada 20.000 km",
+                remaining: calculateRemaining('cardan_oil', 20000, km, history, vehicleId, "8.000 KM"),
+                intervalKm: 20000
+            });
+        } else if (isBelt) {
+             tasks.push({
+                id: 'belt_drive',
+                title: "Correa Secundaria",
+                icon: "link_off",
+                color: "text-stone-600 dark:text-stone-400",
+                bg: "bg-stone-100 dark:bg-stone-800",
+                priorityTag: "Revisión",
+                priorityColor: "bg-stone-200 text-stone-700 dark:bg-stone-800 dark:text-stone-400",
+                subtitle: "Revisar tensión/estado",
+                remaining: calculateRemaining('belt_drive', 10000, km, history, vehicleId, "4.000 KM"),
+                intervalKm: 10000
+            });
+        } else {
+            // Default Chain
+            tasks.push({
+                id: 'chain',
+                title: "Engrase de Cadena",
+                icon: "link",
+                color: "text-emerald-600 dark:text-emerald-400",
+                bg: "bg-emerald-50 dark:bg-emerald-900/20",
+                priorityTag: "Recurrente",
+                priorityColor: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+                subtitle: "Cada 500-1000 km",
+                remaining: calculateRemaining('chain', 800, km, history, vehicleId, "350 KM"),
+                intervalKm: 800
+            });
+        }
         
         tasks.push({
             id: 'tires',
@@ -145,7 +178,7 @@ const getMaintenanceTasks = (type: string, make: string, km: number, history: an
             intervalKm: 15000
         });
 
-        // Moved Timing Belt here so ALL cars have it
+        // Moved Timing Belt here so ALL cars have it - Updated to 90k-120k range
         tasks.push({
             id: 'timing_belt',
             title: "Kit Distribución",
@@ -154,9 +187,9 @@ const getMaintenanceTasks = (type: string, make: string, km: number, history: an
             bg: "bg-gray-100 dark:bg-gray-800",
             priorityTag: "Largo Plazo",
             priorityColor: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
-            subtitle: "Revisar correa/cadena",
-            remaining: calculateRemaining('timing_belt', 100000, km, history, vehicleId, "40.000 KM"),
-            intervalKm: 100000
+            subtitle: "Cambio entre 90.000 y 120.000 km",
+            remaining: calculateRemaining('timing_belt', 120000, km, history, vehicleId, "40.000 KM"),
+            intervalKm: 120000
         });
 
         // Brand specific
