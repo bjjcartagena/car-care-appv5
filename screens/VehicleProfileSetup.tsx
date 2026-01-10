@@ -109,7 +109,7 @@ const VehicleProfileSetup: React.FC = () => {
                                     <select 
                                         value={make}
                                         onChange={(e) => setMake(e.target.value)}
-                                        className="form-input-transition block w-full h-14 rounded-xl border border-[#dbe6df] dark:border-[#354f40] bg-white dark:bg-[#15231b] px-4 text-base text-[#111813] dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none appearance-none cursor-pointer placeholder:text-[#608a6e]" 
+                                        className="form-input-transition block w-full h-14 rounded-xl border border-[#dbe6df] dark:border-[#354f40] bg-white dark:bg-[#15231b] px-4 text-base text-[#111813] dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none appearance-none bg-none cursor-pointer placeholder:text-[#608a6e]" 
                                         id="vehicle-make"
                                     >
                                         <option disabled value="">Selecciona marca</option>
