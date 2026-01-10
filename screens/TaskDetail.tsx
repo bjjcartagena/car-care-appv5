@@ -42,7 +42,7 @@ const getTaskContent = (taskTitle: string) => {
             cost: "0€ - 30€",
             difficulty: "Baja"
         };
-    } else if (titleLower.includes('aceite')) {
+    } else if (titleLower.includes('aceite') && !titleLower.includes('cardán')) {
         return {
             description: "El aceite es la sangre de tu motor. Cambiarlo a tiempo lubrica las partes móviles, reduce el calor y elimina impurezas. Un aceite viejo pierde propiedades, aumentando el desgaste y el riesgo de averías graves.",
             image: "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?q=80&w=1000&auto=format&fit=crop",
@@ -60,12 +60,12 @@ const getTaskContent = (taskTitle: string) => {
             cost: "0€",
             difficulty: "Baja"
         };
-    } else if (titleLower.includes('distribución') || titleLower.includes('correa')) {
+    } else if (titleLower.includes('distribución')) {
         return {
             description: "La rotura de la correa de distribución es una de las averías más caras, pudiendo destrozar el motor. Es vital cambiarla antes del kilometraje recomendado por el fabricante para evitar daños catastróficos.",
             image: "https://images.unsplash.com/photo-1597762696655-6dc22744857b?q=80&w=1000&auto=format&fit=crop",
-            interval: "5-10 Años",
-            intervalSub: "o 100.000 km",
+            interval: "90.000 - 120.000 km",
+            intervalSub: "o cada 5-10 años",
             cost: "300€ - 600€",
             difficulty: "Alta"
         };
@@ -86,6 +86,24 @@ const getTaskContent = (taskTitle: string) => {
             intervalSub: "Limpiar y engrasar",
             cost: "5€ - 15€",
             difficulty: "Baja"
+        };
+    } else if (titleLower.includes('cardán') || titleLower.includes('cardan')) {
+        return {
+            description: "El cardán es un sistema de transmisión muy robusto y limpio, pero requiere cambios periódicos de valvolina para evitar desgastes internos. Revisa posibles fugas en los retenes.",
+            image: "https://images.unsplash.com/photo-1558980394-0a06c46e60e7?q=80&w=1000&auto=format&fit=crop",
+            interval: "20.000 km",
+            intervalSub: "Cambiar aceite (Valvolina)",
+            cost: "20€ - 40€",
+            difficulty: "Baja"
+        };
+    } else if (titleLower.includes('correa secundaria') || (titleLower.includes('correa') && !titleLower.includes('distribución'))) {
+        return {
+            description: "La correa de transmisión secundaria es silenciosa y no requiere engrase, pero debes vigilar que no tenga grietas, dientes rotos o piedras incrustadas. Su tensión es crítica para la vida de los rodamientos.",
+            image: "https://images.unsplash.com/photo-1558981806-ec527fa84c3d?q=80&w=1000&auto=format&fit=crop",
+            interval: "10.000 km",
+            intervalSub: "Revisar tensión",
+            cost: "0€ - 300€",
+            difficulty: "Media"
         };
     }
     
