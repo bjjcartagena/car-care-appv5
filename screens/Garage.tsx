@@ -28,6 +28,28 @@ const Garage: React.FC = () => {
         }, 150);
     };
 
+    const handleDeleteVehicle = (e: React.MouseEvent, id: string) => {
+        e.stopPropagation(); // Prevent selection when deleting
+        
+        if (confirm("¿Seguro que quieres eliminar este vehículo?")) {
+            const updatedGarage = garage.filter(v => v.id !== id);
+            setGarage(updatedGarage);
+            localStorage.setItem('autominder_garage', JSON.stringify(updatedGarage));
+            
+            // If we deleted the active one, handle it
+            if (activeId === id) {
+                if (updatedGarage.length > 0) {
+                    const newActive = updatedGarage[0].id;
+                    setActiveId(newActive);
+                    localStorage.setItem('autominder_active_id', newActive);
+                } else {
+                    localStorage.removeItem('autominder_active_id');
+                    setActiveId('');
+                }
+            }
+        }
+    };
+
     const handleAddVehicle = () => {
         navigate('/');
     };
@@ -89,10 +111,14 @@ const Garage: React.FC = () => {
                                         <p className="text-xs text-text-muted/80 dark:text-text-muted-dark/80 mt-1">{vehicle.mileage} km</p>
                                     </div>
                                     
-                                    {/* Selection Indicator */}
-                                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${isActive ? 'border-primary bg-primary text-black' : 'border-gray-300 dark:border-gray-600'}`}>
-                                        {isActive && <span className="material-symbols-outlined text-sm font-bold">check</span>}
-                                    </div>
+                                    {/* Delete Button */}
+                                    <button 
+                                        onClick={(e) => handleDeleteVehicle(e, vehicle.id)}
+                                        className="h-10 w-10 rounded-full flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors z-10"
+                                        title="Eliminar vehículo"
+                                    >
+                                        <span className="material-symbols-outlined">delete</span>
+                                    </button>
                                 </div>
                             );
                         })}
