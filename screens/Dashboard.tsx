@@ -470,9 +470,7 @@ const Dashboard: React.FC = () => {
                                         <div className="flex-1 min-w-0">
                                             <div className="flex justify-between items-start">
                                                 <h4 className="font-bold text-text-main dark:text-white truncate">{task.title}</h4>
-                                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${task.priorityColor}`}>
-                                                    {task.priorityTag}
-                                                </span>
+                                                {/* Removed Priority Tag */}
                                             </div>
                                             <p className="text-sm text-text-muted dark:text-text-muted-dark truncate mt-0.5">{task.subtitle}</p>
                                         </div>
