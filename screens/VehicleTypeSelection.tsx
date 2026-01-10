@@ -31,15 +31,6 @@ const VehicleTypeSelection: React.FC = () => {
                     <h2 className="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-tight">Car Care App</h2>
                 </div>
                 <div className="flex gap-2">
-                     {hasVehicles && (
-                        <button 
-                            onClick={() => navigate('/dashboard')}
-                            className="flex items-center justify-center px-4 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors font-bold text-sm mr-1 gap-2"
-                        >
-                             <span className="material-symbols-outlined text-lg">garage_home</span>
-                             <span className="hidden sm:inline">Mi Garaje</span>
-                        </button>
-                     )}
                      <DarkModeToggle />
                     <button className="flex items-center justify-center overflow-hidden rounded-lg h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                         <span className="material-symbols-outlined">settings</span>
@@ -76,6 +67,23 @@ const VehicleTypeSelection: React.FC = () => {
                     
                     {/* Selection Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mt-4">
+                        
+                        {/* Garage Card (Only if vehicles exist) */}
+                        {hasVehicles && (
+                            <button onClick={() => navigate('/dashboard')} className="col-span-1 sm:col-span-2 group relative flex flex-row items-center gap-6 rounded-xl border-2 border-primary/30 bg-primary/5 p-6 transition-all duration-200 hover:border-primary hover:bg-primary/10 hover:shadow-xl hover:shadow-primary/10 focus:outline-none focus:ring-4 focus:ring-primary/20 text-left">
+                                <div className="flex items-center justify-center h-14 w-14 shrink-0 rounded-full bg-primary text-white group-hover:scale-110 transition-transform duration-200 shadow-lg shadow-primary/30">
+                                    <span className="material-symbols-outlined text-3xl">garage_home</span>
+                                </div>
+                                <div className="flex flex-col gap-1 min-w-0">
+                                    <h2 className="text-slate-900 dark:text-white text-xl font-bold leading-tight">Ir a Mi Garaje</h2>
+                                    <p className="text-slate-600 dark:text-slate-300 text-sm font-medium">Ver mis vehículos guardados</p>
+                                </div>
+                                <div className="ml-auto text-primary hidden sm:block">
+                                    <span className="material-symbols-outlined text-3xl group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                                </div>
+                            </button>
+                        )}
+
                         {/* Car Card */}
                         <button onClick={() => selectType('car')} className="group relative flex flex-col items-center sm:items-start gap-6 rounded-xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 transition-all duration-200 hover:border-primary hover:shadow-xl hover:shadow-primary/10 focus:outline-none focus:ring-4 focus:ring-primary/20 text-left">
                             <div className="flex items-center justify-center h-16 w-16 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white group-hover:bg-primary group-hover:text-slate-900 transition-colors duration-200">
