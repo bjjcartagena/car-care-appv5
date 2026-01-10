@@ -325,42 +325,11 @@ const Dashboard: React.FC = () => {
                     </div>
                 </div>
                 
-                {/* Dashboard Grid */}
+                {/* Main Content Grid: Tasks & Sidebar (ITV) */}
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6 relative z-10">
-                    {/* Health Dashboard Card (Left/Top) */}
+                    
+                    {/* Left Column: Maintenance Tasks (Moved to top/first for mobile) */}
                     <div className="md:col-span-7 lg:col-span-8 flex flex-col gap-6">
-                        {/* Health Status Card */}
-                        <div className="bg-card-light dark:bg-card-dark rounded-2xl p-6 shadow-soft border border-gray-100 dark:border-white/5 relative overflow-hidden group">
-                            {/* Abstract Background Decoration */}
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-                            <div className="flex flex-col sm:flex-row items-center gap-8 relative z-10">
-                                {/* Circular Progress */}
-                                <div className="relative h-48 w-48 shrink-0">
-                                    <svg className="h-full w-full -rotate-90 transform" viewBox="0 0 100 100">
-                                        <circle className="text-gray-100 dark:text-white/5" cx="50" cy="50" fill="transparent" r="42" stroke="currentColor" strokeWidth="8"></circle>
-                                        <circle className="text-primary transition-all duration-1000 ease-out" cx="50" cy="50" fill="transparent" r="42" stroke="currentColor" strokeDasharray="264" strokeDashoffset="40" strokeLinecap="round" strokeWidth="8"></circle>
-                                    </svg>
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                                        <span className="text-4xl font-extrabold text-text-main dark:text-white">85%</span>
-                                        <span className="text-xs font-semibold uppercase tracking-wider text-text-muted dark:text-text-muted-dark">Salud</span>
-                                    </div>
-                                </div>
-                                {/* Text Content */}
-                                <div className="flex flex-col text-center sm:text-left">
-                                    <h3 className="text-xl font-bold mb-2">Todo en orden</h3>
-                                    <p className="text-text-muted dark:text-text-muted-dark mb-6 leading-relaxed">
-                                        Hemos cargado el plan oficial de {vehicle.make}. Tienes tareas pendientes para mantener la garantía y fiabilidad.
-                                    </p>
-                                    <div className="flex flex-wrap justify-center sm:justify-start gap-3">
-                                        <span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-bold">
-                                            <span className="material-symbols-outlined text-sm mr-1">check_circle</span>
-                                            General OK
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
                         {/* Upcoming Tasks Section */}
                         <div>
                             <div className="flex items-center justify-between mb-4">
@@ -392,9 +361,9 @@ const Dashboard: React.FC = () => {
                         </div>
                     </div>
                     
-                    {/* Right Sidebar / Quick Actions */}
+                    {/* Right Sidebar: ITV, Stats, CTA */}
                     <div className="md:col-span-5 lg:col-span-4 flex flex-col gap-6">
-                        {/* ITV Module - UPDATED: Month Only */}
+                        {/* ITV Module */}
                         <div className="bg-card-light dark:bg-card-dark rounded-2xl p-6 shadow-soft border border-gray-100 dark:border-white/5 relative overflow-hidden">
                             <div className="flex justify-between items-start mb-4">
                                 <div>
@@ -472,6 +441,43 @@ const Dashboard: React.FC = () => {
                             </button>
                         </div>
                     </div>
+                </div>
+
+                {/* Secondary Grid (Bottom): Health Status */}
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-6 relative z-10">
+                     <div className="md:col-span-7 lg:col-span-8 flex flex-col gap-6">
+                         {/* Health Status Card */}
+                        <div className="bg-card-light dark:bg-card-dark rounded-2xl p-6 shadow-soft border border-gray-100 dark:border-white/5 relative overflow-hidden group">
+                            {/* Abstract Background Decoration */}
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+                            <div className="flex flex-col sm:flex-row items-center gap-8 relative z-10">
+                                {/* Circular Progress */}
+                                <div className="relative h-48 w-48 shrink-0">
+                                    <svg className="h-full w-full -rotate-90 transform" viewBox="0 0 100 100">
+                                        <circle className="text-gray-100 dark:text-white/5" cx="50" cy="50" fill="transparent" r="42" stroke="currentColor" strokeWidth="8"></circle>
+                                        <circle className="text-primary transition-all duration-1000 ease-out" cx="50" cy="50" fill="transparent" r="42" stroke="currentColor" strokeDasharray="264" strokeDashoffset="40" strokeLinecap="round" strokeWidth="8"></circle>
+                                    </svg>
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                                        <span className="text-4xl font-extrabold text-text-main dark:text-white">85%</span>
+                                        <span className="text-xs font-semibold uppercase tracking-wider text-text-muted dark:text-text-muted-dark">Salud</span>
+                                    </div>
+                                </div>
+                                {/* Text Content */}
+                                <div className="flex flex-col text-center sm:text-left">
+                                    <h3 className="text-xl font-bold mb-2">Todo en orden</h3>
+                                    <p className="text-text-muted dark:text-text-muted-dark mb-6 leading-relaxed">
+                                        Hemos cargado el plan oficial de {vehicle.make}. Tienes tareas pendientes para mantener la garantía y fiabilidad.
+                                    </p>
+                                    <div className="flex flex-wrap justify-center sm:justify-start gap-3">
+                                        <span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-bold">
+                                            <span className="material-symbols-outlined text-sm mr-1">check_circle</span>
+                                            General OK
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                     </div>
                 </div>
             </main>
             {/* Floating Action Button (FAB) */}
