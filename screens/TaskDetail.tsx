@@ -6,7 +6,43 @@ import DarkModeToggle from '../components/DarkModeToggle';
 const getTaskContent = (taskTitle: string) => {
     const titleLower = taskTitle?.toLowerCase() || '';
 
-    if (titleLower.includes('aceite')) {
+    if (titleLower.includes('filtro de aceite')) {
+        return {
+             description: "El filtro retiene las partículas metálicas y suciedad del aceite. Cambiarlo junto con el aceite es obligatorio para no contaminar el lubricante nuevo nada más echarlo.",
+            image: "https://images.unsplash.com/photo-1626078726591-b384666f29cb?q=80&w=1000&auto=format&fit=crop",
+            interval: "Cada 6.000 km",
+            intervalSub: "Sustituir siempre",
+            cost: "10€ - 20€",
+            difficulty: "Media"
+        };
+    } else if (titleLower.includes('caja cambios') || titleLower.includes('caja de cambios')) {
+         return {
+            description: "El aceite de la caja de cambios asegura que las marchas entren suaves y protege los engranajes del desgaste. En motos con embrague bañado en aceite, suele ser el mismo que el del motor, pero en otros modelos es independiente.",
+            image: "https://images.unsplash.com/photo-1598555849883-9e90c8b3684a?q=80&w=1000&auto=format&fit=crop",
+            interval: "Cada 6.000 km",
+            intervalSub: "Revisar o cambiar",
+            cost: "15€ - 40€",
+            difficulty: "Media"
+        };
+    } else if (titleLower.includes('filtro de aire')) {
+         return {
+            description: "Un filtro de aire sucio reduce la potencia del motor y aumenta el consumo. Limpiarlo o cambiarlo permite que el motor 'respire' correctamente, evitando que entren impurezas al cilindro.",
+            image: "https://images.unsplash.com/photo-1627483262268-9c96d8a36896?q=80&w=1000&auto=format&fit=crop",
+            interval: "Cada 6.000 km",
+            intervalSub: "Limpiar o sustituir",
+            cost: "15€ - 50€",
+            difficulty: "Baja"
+        };
+    } else if (titleLower.includes('embrague')) {
+        return {
+            description: "Un embrague mal ajustado puede patinar (perdiendo potencia) o no desacoplar bien (dificultando el cambio y encontrando el punto muerto). Ajustar la tensión del cable y la holgura de la maneta es vital.",
+            image: "https://images.unsplash.com/photo-1558981000-f294a6ed32b2?q=80&w=1000&auto=format&fit=crop",
+            interval: "Cada 6.000 km",
+            intervalSub: "Revisar holgura",
+            cost: "0€ - 30€",
+            difficulty: "Baja"
+        };
+    } else if (titleLower.includes('aceite')) {
         return {
             description: "El aceite es la sangre de tu motor. Cambiarlo a tiempo lubrica las partes móviles, reduce el calor y elimina impurezas. Un aceite viejo pierde propiedades, aumentando el desgaste y el riesgo de averías graves.",
             image: "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?q=80&w=1000&auto=format&fit=crop",
