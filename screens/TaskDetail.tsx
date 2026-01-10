@@ -204,7 +204,6 @@ const TaskDetail: React.FC = () => {
                         </nav>
                         <div className="flex items-center gap-3">
                             <DarkModeToggle />
-                            <div className="bg-center bg-no-repeat bg-cover rounded-full h-10 w-10 border-2 border-transparent hover:border-primary transition-all cursor-pointer" data-alt="User profile picture placeholder" style={{backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuCLpQLNOdVAYZZ7vfjK6FmEIorppoFeavqSdG6pnU7nu8fWvNoXYAfuA1L7_hcgJ1wVF9E69wxS4YGtdZrfDRIXZ-H463ckTIjpvX2tXdiXKxpUqtHdAqi2-lBtfix-qFc1qFnp5qT8th2y6lxSu5RtQqa_gTWDcwTDfdZZokLIePzF05nSHMQ8SzuAnkDvSpMFDjairnAe9iz25RuUxO1pxlqr_qQyFuKMSdNaIULMXHqQYzkcuURgc5YIfC__9mfdmN6BqqFIri_M")'}}></div>
                         </div>
                     </div>
                 </div>
