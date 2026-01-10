@@ -25,17 +25,83 @@ const getMaintenanceTasks = (type: string, make: string, km: number, history: an
     // Logic specific to type
     if (type === 'moto') {
         tasks.push({
+            id: 'engine_oil_moto',
+            title: "Aceite de Motor",
+            icon: "oil_barrel",
+            color: "text-orange-600 dark:text-orange-400",
+            bg: "bg-orange-50 dark:bg-orange-900/20",
+            priorityTag: "Mecánica",
+            priorityColor: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
+            subtitle: "Cambio cada 6.000 km",
+            remaining: calculateRemaining('engine_oil_moto', 6000, km, history, vehicleId, "1.200 KM"),
+            intervalKm: 6000
+        });
+
+        tasks.push({
+            id: 'oil_filter_moto',
+            title: "Filtro de Aceite",
+            icon: "filter_alt",
+            color: "text-yellow-600 dark:text-yellow-400",
+            bg: "bg-yellow-50 dark:bg-yellow-900/20",
+            priorityTag: "Mecánica",
+            priorityColor: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+            subtitle: "Sustitución cada 6.000 km",
+            remaining: calculateRemaining('oil_filter_moto', 6000, km, history, vehicleId, "1.200 KM"),
+            intervalKm: 6000
+        });
+
+        tasks.push({
+            id: 'gearbox_oil',
+            title: "Aceite Caja Cambios",
+            icon: "settings_suggest",
+            color: "text-indigo-600 dark:text-indigo-400",
+            bg: "bg-indigo-50 dark:bg-indigo-900/20",
+            priorityTag: "Transmisión",
+            priorityColor: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400",
+            subtitle: "Revisar cada 6.000 km",
+            remaining: calculateRemaining('gearbox_oil', 6000, km, history, vehicleId, "1.200 KM"),
+            intervalKm: 6000
+        });
+
+        tasks.push({
+            id: 'clutch_adjust',
+            title: "Ajuste de Embrague",
+            icon: "build_circle",
+            color: "text-gray-600 dark:text-gray-400",
+            bg: "bg-gray-100 dark:bg-gray-800",
+            priorityTag: "Mecánica",
+            priorityColor: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
+            subtitle: "Revisar holgura",
+            remaining: calculateRemaining('clutch_adjust', 6000, km, history, vehicleId, "1.200 KM"),
+            intervalKm: 6000
+        });
+
+        tasks.push({
+            id: 'air_filter_moto',
+            title: "Limpieza Filtro Aire",
+            icon: "air",
+            color: "text-blue-600 dark:text-blue-400",
+            bg: "bg-blue-50 dark:bg-blue-900/20",
+            priorityTag: "Admisión",
+            priorityColor: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+            subtitle: "Limpiar cada 6.000 km",
+            remaining: calculateRemaining('air_filter_moto', 6000, km, history, vehicleId, "1.200 KM"),
+            intervalKm: 6000
+        });
+
+        tasks.push({
             id: 'chain',
             title: "Engrase de Cadena",
             icon: "link",
-            color: "text-orange-600 dark:text-orange-400",
-            bg: "bg-orange-50 dark:bg-orange-900/20",
+            color: "text-emerald-600 dark:text-emerald-400",
+            bg: "bg-emerald-50 dark:bg-emerald-900/20",
             priorityTag: "Recurrente",
-            priorityColor: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
+            priorityColor: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
             subtitle: "Cada 500-1000 km",
             remaining: calculateRemaining('chain', 800, km, history, vehicleId, "350 KM"),
             intervalKm: 800
         });
+        
         tasks.push({
             id: 'tires',
             title: "Presión Neumáticos",
@@ -79,6 +145,20 @@ const getMaintenanceTasks = (type: string, make: string, km: number, history: an
             intervalKm: 15000
         });
 
+        // Moved Timing Belt here so ALL cars have it
+        tasks.push({
+            id: 'timing_belt',
+            title: "Kit Distribución",
+            icon: "settings",
+            color: "text-gray-600 dark:text-gray-400",
+            bg: "bg-gray-100 dark:bg-gray-800",
+            priorityTag: "Largo Plazo",
+            priorityColor: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
+            subtitle: "Revisar correa/cadena",
+            remaining: calculateRemaining('timing_belt', 100000, km, history, vehicleId, "40.000 KM"),
+            intervalKm: 100000
+        });
+
         // Brand specific
         if (['Peugeot', 'Citroën', 'DS Automobiles', 'Opel'].includes(make)) {
              tasks.push({
@@ -92,18 +172,6 @@ const getMaintenanceTasks = (type: string, make: string, km: number, history: an
                 subtitle: "Sistema BlueHDi",
                 remaining: calculateRemaining('adblue', 10000, km, history, vehicleId, "1.200 KM"),
                 intervalKm: 10000
-            });
-            tasks.push({
-                id: 'timing_belt',
-                title: "Kit Distribución",
-                icon: "settings",
-                color: "text-gray-600 dark:text-gray-400",
-                bg: "bg-gray-100 dark:bg-gray-800",
-                priorityTag: "Largo Plazo",
-                priorityColor: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
-                subtitle: "Revisar correa húmeda",
-                remaining: calculateRemaining('timing_belt', 100000, km, history, vehicleId, "40.000 KM"),
-                intervalKm: 100000
             });
         }
         
