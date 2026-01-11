@@ -180,6 +180,18 @@ const TaskDetail: React.FC = () => {
         // Save back
         localStorage.setItem('autominder_history', JSON.stringify(history));
 
+        // Update vehicle mileage if new is higher (ensures consistency)
+        const newKm = parseInt(historyData.km);
+        const currentKm = parseInt(vehicle.mileage);
+        if (!isNaN(newKm) && newKm > currentKm) {
+             const garageStr = localStorage.getItem('autominder_garage');
+             if (garageStr) {
+                 const garage = JSON.parse(garageStr);
+                 const updatedGarage = garage.map((v: any) => v.id === vehicle.id ? { ...v, mileage: historyData.km } : v);
+                 localStorage.setItem('autominder_garage', JSON.stringify(updatedGarage));
+             }
+        }
+
         // Navigate back to dashboard to see changes
         navigate('/dashboard');
     };
