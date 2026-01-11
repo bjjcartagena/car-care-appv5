@@ -2,27 +2,72 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import DarkModeToggle from '../components/DarkModeToggle';
 
+// --- Helper Components ---
+
+const NotificationBanner: React.FC<{ messages: string[], onClose: () => void }> = ({ messages, onClose }) => {
+    if (messages.length === 0) return null;
+    return (
+        <div className="mb-6 flex flex-col gap-2">
+            {messages.map((msg, idx) => (
+                <div key={idx} className="bg-primary/10 border border-primary/20 p-4 rounded-xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+                    <span className="material-symbols-outlined text-primary">notifications_active</span>
+                    <p className="text-sm font-medium text-text-main dark:text-white flex-1">{msg}</p>
+                    <button onClick={onClose} className="text-text-muted hover:text-text-main">
+                        <span className="material-symbols-outlined text-lg">close</span>
+                    </button>
+                </div>
+            ))}
+        </div>
+    );
+};
+
+const KmUpdateModal: React.FC<{ isOpen: boolean, onClose: () => void, onSave: (km: string) => void, currentKm: string }> = ({ isOpen, onClose, onSave, currentKm }) => {
+    const [km, setKm] = useState(currentKm);
+    if (!isOpen) return null;
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="bg-white dark:bg-[#1a2c20] w-full max-w-sm rounded-2xl p-6 shadow-xl animate-in zoom-in-95">
+                <div className="flex justify-center mb-4">
+                     <div className="h-12 w-12 bg-primary/20 rounded-full flex items-center justify-center text-primary">
+                        <span className="material-symbols-outlined text-2xl">speed</span>
+                    </div>
+                </div>
+                <h3 className="text-lg font-bold mb-2 text-center text-text-main dark:text-white">Actualización Semanal</h3>
+                <p className="text-sm text-text-muted mb-6 text-center">Para mantener el plan de mantenimiento preciso, por favor actualiza el kilometraje actual.</p>
+                
+                <input 
+                    type="number" 
+                    value={km} 
+                    onChange={(e) => setKm(e.target.value)}
+                    className="w-full text-3xl font-black text-center py-4 bg-background-light dark:bg-white/5 rounded-xl border border-gray-200 dark:border-gray-700 mb-6 focus:ring-primary focus:border-primary"
+                    autoFocus
+                />
+                
+                <div className="flex gap-3">
+                    <button onClick={onClose} className="flex-1 py-3 text-sm font-bold text-gray-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Omitir</button>
+                    <button onClick={() => onSave(km)} className="flex-1 py-3 bg-primary hover:bg-primary-hover text-[#052912] font-bold rounded-xl shadow-lg shadow-primary/20 transition-all">Guardar KM</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// --- Main Logic ---
+
 // Helper to calculate remaining KM based on history
 const calculateRemaining = (taskKey: string, intervalKm: number, currentKm: number, history: any, vehicleId: string, defaultRemaining: string) => {
-    // Check if there is history for this specific vehicle and task
     if (history && history[vehicleId] && history[vehicleId][taskKey]) {
         const lastServiceKm = parseInt(history[vehicleId][taskKey].km);
         const kmDriven = currentKm - lastServiceKm;
         const remaining = intervalKm - kmDriven;
-        
-        // If negative, it's overdue
         if (remaining < 0) return `Vencido hace ${Math.abs(remaining)} KM`;
         return `${remaining.toLocaleString('es-ES')} KM`;
     }
-    return defaultRemaining; // Fallback to mock if no history
+    return defaultRemaining;
 };
 
-// Mock DB for manufacturer logic - UPDATED to accept history and calculation
 const getMaintenanceTasks = (type: string, make: string, km: number, history: any, vehicleId: string) => {
-    // Common items
     const tasks = [];
-    
-    // Logic specific to type
     if (type === 'moto') {
         tasks.push({
             id: 'engine_oil_moto',
@@ -30,124 +75,36 @@ const getMaintenanceTasks = (type: string, make: string, km: number, history: an
             icon: "oil_barrel",
             color: "text-orange-600 dark:text-orange-400",
             bg: "bg-orange-50 dark:bg-orange-900/20",
-            priorityTag: "Mecánica",
-            priorityColor: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
             subtitle: "Cambio cada 6.000 km",
             remaining: calculateRemaining('engine_oil_moto', 6000, km, history, vehicleId, "1.200 KM"),
-            intervalKm: 6000
         });
-
         tasks.push({
             id: 'oil_filter_moto',
             title: "Filtro de Aceite",
             icon: "filter_alt",
             color: "text-yellow-600 dark:text-yellow-400",
             bg: "bg-yellow-50 dark:bg-yellow-900/20",
-            priorityTag: "Mecánica",
-            priorityColor: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
             subtitle: "Sustitución cada 6.000 km",
             remaining: calculateRemaining('oil_filter_moto', 6000, km, history, vehicleId, "1.200 KM"),
-            intervalKm: 6000
         });
-
         tasks.push({
             id: 'gearbox_oil',
             title: "Aceite Caja Cambios",
             icon: "settings_suggest",
             color: "text-indigo-600 dark:text-indigo-400",
             bg: "bg-indigo-50 dark:bg-indigo-900/20",
-            priorityTag: "Transmisión",
-            priorityColor: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400",
             subtitle: "Revisar cada 6.000 km",
             remaining: calculateRemaining('gearbox_oil', 6000, km, history, vehicleId, "1.200 KM"),
-            intervalKm: 6000
         });
-
         tasks.push({
-            id: 'clutch_adjust',
-            title: "Ajuste de Embrague",
-            icon: "build_circle",
-            color: "text-gray-600 dark:text-gray-400",
-            bg: "bg-gray-100 dark:bg-gray-800",
-            priorityTag: "Mecánica",
-            priorityColor: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
-            subtitle: "Revisar holgura",
-            remaining: calculateRemaining('clutch_adjust', 6000, km, history, vehicleId, "1.200 KM"),
-            intervalKm: 6000
+            id: 'chain',
+            title: "Engrase de Cadena",
+            icon: "link",
+            color: "text-emerald-600 dark:text-emerald-400",
+            bg: "bg-emerald-50 dark:bg-emerald-900/20",
+            subtitle: "Cada 500-1000 km",
+            remaining: calculateRemaining('chain', 800, km, history, vehicleId, "350 KM"),
         });
-
-        tasks.push({
-            id: 'air_filter_moto',
-            title: "Limpieza Filtro Aire",
-            icon: "air",
-            color: "text-blue-600 dark:text-blue-400",
-            bg: "bg-blue-50 dark:bg-blue-900/20",
-            priorityTag: "Admisión",
-            priorityColor: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-            subtitle: "Limpiar cada 6.000 km",
-            remaining: calculateRemaining('air_filter_moto', 6000, km, history, vehicleId, "1.200 KM"),
-            intervalKm: 6000
-        });
-
-        // Final Drive Logic (Chain vs Shaft vs Belt)
-        const isCardan = ['BMW Motorrad', 'Moto Guzzi', 'Triumph'].includes(make);
-        const isBelt = ['Harley-Davidson', 'Indian'].includes(make);
-
-        if (isCardan) {
-             tasks.push({
-                id: 'cardan_oil',
-                title: "Aceite de Cardán",
-                icon: "settings_suggest",
-                color: "text-slate-600 dark:text-slate-400",
-                bg: "bg-slate-100 dark:bg-slate-800",
-                priorityTag: "Mantenimiento",
-                priorityColor: "bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-400",
-                subtitle: "Cambiar cada 20.000 km",
-                remaining: calculateRemaining('cardan_oil', 20000, km, history, vehicleId, "8.000 KM"),
-                intervalKm: 20000
-            });
-        } else if (isBelt) {
-             tasks.push({
-                id: 'belt_drive',
-                title: "Correa Secundaria",
-                icon: "link_off",
-                color: "text-stone-600 dark:text-stone-400",
-                bg: "bg-stone-100 dark:bg-stone-800",
-                priorityTag: "Revisión",
-                priorityColor: "bg-stone-200 text-stone-700 dark:bg-stone-800 dark:text-stone-400",
-                subtitle: "Revisar tensión/estado",
-                remaining: calculateRemaining('belt_drive', 10000, km, history, vehicleId, "4.000 KM"),
-                intervalKm: 10000
-            });
-        } else {
-            // Default Chain
-            tasks.push({
-                id: 'chain',
-                title: "Engrase de Cadena",
-                icon: "link",
-                color: "text-emerald-600 dark:text-emerald-400",
-                bg: "bg-emerald-50 dark:bg-emerald-900/20",
-                priorityTag: "Recurrente",
-                priorityColor: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-                subtitle: "Cada 500-1000 km",
-                remaining: calculateRemaining('chain', 800, km, history, vehicleId, "350 KM"),
-                intervalKm: 800
-            });
-        }
-        
-        tasks.push({
-            id: 'tires',
-            title: "Presión Neumáticos",
-            icon: "tire_repair",
-            color: "text-blue-600 dark:text-blue-400",
-            bg: "bg-blue-50 dark:bg-blue-900/20",
-            priorityTag: "Seguridad",
-            priorityColor: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-            subtitle: "Revisar en frío semanalmente",
-            remaining: "2 Días", // Time based, keeping static for now or need date logic
-            intervalKm: 0
-        });
-        
         if (make === 'Ducati') {
             tasks.push({
                 id: 'desmo',
@@ -155,44 +112,29 @@ const getMaintenanceTasks = (type: string, make: string, km: number, history: an
                 icon: "settings_suggest",
                 color: "text-red-600 dark:text-red-400",
                 bg: "bg-red-50 dark:bg-red-900/20",
-                priorityTag: "Crítico",
-                priorityColor: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
                 subtitle: "Reglaje desmodrómico",
                 remaining: calculateRemaining('desmo', 24000, km, history, vehicleId, "4.500 KM"),
-                intervalKm: 24000
             });
         }
     } else {
-        // CARS
         tasks.push({
             id: 'oil',
             title: "Aceite y Filtro",
             icon: "oil_barrel",
             color: "text-orange-600 dark:text-orange-400",
             bg: "bg-orange-50 dark:bg-orange-900/20",
-            priorityTag: "Pronto",
-            priorityColor: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
             subtitle: "Intervalo recomendado anual",
-            // Example: Interval 15,000km
             remaining: calculateRemaining('oil', 15000, km, history, vehicleId, "2.400 KM"),
-            intervalKm: 15000
         });
-
-        // Moved Timing Belt here so ALL cars have it - Updated to 90k-120k range
         tasks.push({
             id: 'timing_belt',
             title: "Kit Distribución",
             icon: "settings",
             color: "text-gray-600 dark:text-gray-400",
             bg: "bg-gray-100 dark:bg-gray-800",
-            priorityTag: "Largo Plazo",
-            priorityColor: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
             subtitle: "Cambio entre 90.000 y 120.000 km",
             remaining: calculateRemaining('timing_belt', 120000, km, history, vehicleId, "40.000 KM"),
-            intervalKm: 120000
         });
-
-        // Brand specific
         if (['Peugeot', 'Citroën', 'DS Automobiles', 'Opel'].includes(make)) {
              tasks.push({
                 id: 'adblue',
@@ -200,29 +142,10 @@ const getMaintenanceTasks = (type: string, make: string, km: number, history: an
                 icon: "local_gas_station",
                 color: "text-blue-600 dark:text-blue-400",
                 bg: "bg-blue-50 dark:bg-blue-900/20",
-                priorityTag: "Urgente",
-                priorityColor: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
                 subtitle: "Sistema BlueHDi",
                 remaining: calculateRemaining('adblue', 10000, km, history, vehicleId, "1.200 KM"),
-                intervalKm: 10000
             });
         }
-        
-        if (['Toyota', 'Lexus', 'Honda'].includes(make)) {
-            tasks.push({
-                id: 'hybrid',
-                title: "Chequeo Sistema Híbrido",
-                icon: "battery_charging_full",
-                color: "text-green-600 dark:text-green-400",
-                bg: "bg-green-50 dark:bg-green-900/20",
-                priorityTag: "Garantía",
-                priorityColor: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-                subtitle: "Salud de batería HV",
-                remaining: calculateRemaining('hybrid', 15000, km, history, vehicleId, "5.000 KM"),
-                intervalKm: 15000
-            });
-        }
-        
         if (['BMW', 'Mini'].includes(make)) {
              tasks.push({
                 id: 'brake_fluid',
@@ -230,87 +153,34 @@ const getMaintenanceTasks = (type: string, make: string, km: number, history: an
                 icon: "water_drop",
                 color: "text-yellow-600 dark:text-yellow-400",
                 bg: "bg-yellow-50 dark:bg-yellow-900/20",
-                priorityTag: "Seguridad",
-                priorityColor: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
                 subtitle: "Cambio cada 2 años",
-                remaining: "3 Meses", // Time based
-                intervalKm: 0
+                remaining: "2 Años", // Time based placeholder
             });
         }
     }
-    
-    // Generic filler if list is short
-    if (tasks.length < 3) {
-        tasks.push({
-            id: 'cabin_filter',
-            title: "Filtro Habitáculo",
-            icon: "air",
-            color: "text-green-600 dark:text-green-400",
-            bg: "bg-green-50 dark:bg-green-900/20",
-            priorityTag: "Salud",
-            priorityColor: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-            subtitle: "Aire limpio",
-            remaining: calculateRemaining('cabin_filter', 20000, km, history, vehicleId, "8.000 KM"),
-            intervalKm: 20000
-        });
-    }
-
     return tasks;
 };
 
 const Dashboard: React.FC = () => {
     const navigate = useNavigate();
-    const [vehicle, setVehicle] = useState<any>({
-        make: "Peugeot",
-        model: "3008",
-        mileage: "82.400",
-        type: "car",
-        id: "default"
-    });
+    const [vehicle, setVehicle] = useState<any>(null);
     const [tasks, setTasks] = useState<any[]>([]);
+    const [garage, setGarage] = useState<any[]>([]);
     
-    // ITV State
+    // Dates & Notifications
     const [itvDate, setItvDate] = useState<string>('');
     const [daysToItv, setDaysToItv] = useState<number | null>(null);
-
-    // Insurance State
     const [insuranceDate, setInsuranceDate] = useState<string>('');
     const [daysToInsurance, setDaysToInsurance] = useState<number | null>(null);
-
-    const [garage, setGarage] = useState<any[]>([]);
-    const [showVehicleMenu, setShowVehicleMenu] = useState(false);
     
-    // User Name State
+    const [notifications, setNotifications] = useState<string[]>([]);
+    const [showKmModal, setShowKmModal] = useState(false);
+    
+    const [showVehicleMenu, setShowVehicleMenu] = useState(false);
     const [userName, setUserName] = useState(() => localStorage.getItem('autominder_username') || "Conductor");
     const [isEditingName, setIsEditingName] = useState(false);
 
-    // Notifications State
-    const [showNotifications, setShowNotifications] = useState(false);
-    const [reminders, setReminders] = useState<any[]>([]);
-
     useEffect(() => {
-        // Migration logic
-        const oldVehicle = localStorage.getItem('autominder_vehicle');
-        const storedGarage = localStorage.getItem('autominder_garage');
-        
-        if (oldVehicle && !storedGarage) {
-            const parsedOld = JSON.parse(oldVehicle);
-            parsedOld.id = Date.now().toString();
-            parsedOld.dateAdded = new Date().toISOString();
-            
-            const newGarage = [parsedOld];
-            localStorage.setItem('autominder_garage', JSON.stringify(newGarage));
-            localStorage.setItem('autominder_active_id', parsedOld.id);
-            localStorage.removeItem('autominder_vehicle'); 
-        }
-
-        // Load Reminders
-        const storedReminders = localStorage.getItem('autominder_reminders');
-        if (storedReminders) {
-            setReminders(JSON.parse(storedReminders));
-        }
-
-        // Load active vehicle from garage
         const garageStr = localStorage.getItem('autominder_garage');
         const activeId = localStorage.getItem('autominder_active_id');
         const historyStr = localStorage.getItem('autominder_history');
@@ -322,42 +192,98 @@ const Dashboard: React.FC = () => {
             
             if (parsedGarage.length > 0) {
                 let activeVehicle = parsedGarage.find((v: any) => v.id === activeId);
-                // Fallback if active ID is invalid but garage has items
                 if (!activeVehicle) {
                     activeVehicle = parsedGarage[0];
                     localStorage.setItem('autominder_active_id', activeVehicle.id);
                 }
-                
                 setVehicle(activeVehicle);
-                // Pass History to calculate logic
-                setTasks(getMaintenanceTasks(
-                    activeVehicle.type, 
-                    activeVehicle.make, 
-                    parseInt(activeVehicle.mileage),
-                    history,
-                    activeVehicle.id
-                ));
+                setTasks(getMaintenanceTasks(activeVehicle.type, activeVehicle.make, parseInt(activeVehicle.mileage), history, activeVehicle.id));
+                
+                // --- Notifications Checks ---
+                const newNotes: string[] = [];
+
+                // 1. Weekly KM Update Logic
+                const lastKmCheck = localStorage.getItem(`autominder_last_km_check_${activeVehicle.id}`);
+                const now = Date.now();
+                
+                if (!lastKmCheck) {
+                    localStorage.setItem(`autominder_last_km_check_${activeVehicle.id}`, now.toString());
+                } else {
+                    const daysSinceCheck = (now - parseInt(lastKmCheck)) / (1000 * 60 * 60 * 24);
+                    if (daysSinceCheck >= 7) {
+                        setShowKmModal(true);
+                        newNotes.push(`📅 Han pasado ${Math.floor(daysSinceCheck)} días. Por favor, actualiza los KM de tu ${activeVehicle.make}.`);
+                    }
+                }
+
+                // 2. ITV Checks (30, 14, 7 days)
+                const storedItv = localStorage.getItem('autominder_itv');
+                if (storedItv) {
+                    setItvDate(storedItv);
+                    const days = getDaysDiff(storedItv, true); // True for end of month logic
+                    setDaysToItv(days);
+                    if ([30, 14, 7].includes(days)) {
+                        newNotes.push(`🚗 Tu ITV caduca en ${days} días.`);
+                    } else if (days < 0) {
+                        newNotes.push(`⚠️ Tu ITV ha caducado hace ${Math.abs(days)} días.`);
+                    }
+                }
+
+                // 3. Insurance Checks (30, 7 days)
+                const storedInsurance = localStorage.getItem('autominder_insurance');
+                if (storedInsurance) {
+                    setInsuranceDate(storedInsurance);
+                    const days = getDaysDiff(storedInsurance, false);
+                    setDaysToInsurance(days);
+                    if ([30, 7].includes(days)) {
+                        newNotes.push(`📄 Tu Seguro vence en ${days} días.`);
+                    } else if (days < 0) {
+                        newNotes.push(`⚠️ Tu Seguro ha vencido hace ${Math.abs(days)} días.`);
+                    }
+                }
+                
+                if (newNotes.length > 0) setNotifications(newNotes);
+
             } else {
                 navigate('/');
             }
         } else {
              navigate('/');
         }
-
-        // Load ITV Date
-        const storedItv = localStorage.getItem('autominder_itv');
-        if (storedItv) {
-            setItvDate(storedItv);
-            calculateDays(storedItv);
-        }
-
-        // Load Insurance Date
-        const storedInsurance = localStorage.getItem('autominder_insurance');
-        if (storedInsurance) {
-            setInsuranceDate(storedInsurance);
-            calculateInsuranceDays(storedInsurance);
-        }
     }, [navigate]);
+
+    const getDaysDiff = (dateStr: string, isEndOfMonth: boolean) => {
+        if (!dateStr) return 0;
+        let target;
+        if (isEndOfMonth) {
+            const [year, month] = dateStr.split('-').map(Number);
+            target = new Date(year, month, 0); // Last day of month
+        } else {
+            target = new Date(dateStr);
+        }
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const diffTime = target.getTime() - today.getTime();
+        return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    };
+
+    const handleSaveKm = (newKm: string) => {
+        if (!vehicle) return;
+        // Update garage
+        const updatedGarage = garage.map(v => v.id === vehicle.id ? { ...v, mileage: newKm } : v);
+        localStorage.setItem('autominder_garage', JSON.stringify(updatedGarage));
+        // Reset the timer for the notification
+        localStorage.setItem(`autominder_last_km_check_${vehicle.id}`, Date.now().toString());
+        
+        setGarage(updatedGarage);
+        setVehicle({ ...vehicle, mileage: newKm });
+        setShowKmModal(false);
+        setNotifications(prev => prev.filter(n => !n.includes('días. Por favor, actualiza los KM')));
+        
+        // Refresh Tasks with new mileage
+        const history = JSON.parse(localStorage.getItem('autominder_history') || '{}');
+        setTasks(getMaintenanceTasks(vehicle.type, vehicle.make, parseInt(newKm), history, vehicle.id));
+    };
 
     const handleNameSave = () => {
         setIsEditingName(false);
@@ -367,56 +293,30 @@ const Dashboard: React.FC = () => {
     };
 
     const handleNameKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter') {
-            handleNameSave();
-        }
+        if (e.key === 'Enter') handleNameSave();
     };
 
     const saveItvDate = (date: string) => {
         setItvDate(date);
         localStorage.setItem('autominder_itv', date);
-        calculateDays(date);
-    };
-
-    const calculateDays = (dateStr: string) => {
-        if (!dateStr) return;
-        const [year, month] = dateStr.split('-').map(Number);
-        const target = new Date(year, month, 0);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const diffTime = target.getTime() - today.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        setDaysToItv(diffDays);
+        setDaysToItv(getDaysDiff(date, true));
     };
 
     const saveInsuranceDate = (date: string) => {
         setInsuranceDate(date);
         localStorage.setItem('autominder_insurance', date);
-        calculateInsuranceDays(date);
-    };
-
-    const calculateInsuranceDays = (dateStr: string) => {
-        if (!dateStr) return;
-        const target = new Date(dateStr);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const diffTime = target.getTime() - today.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        setDaysToInsurance(diffDays);
+        setDaysToInsurance(getDaysDiff(date, false));
     };
 
     const switchVehicle = (v: any) => {
         setVehicle(v);
-        const history = JSON.parse(localStorage.getItem('autominder_history') || '{}');
-        setTasks(getMaintenanceTasks(v.type, v.make, parseInt(v.mileage), history, v.id));
         localStorage.setItem('autominder_active_id', v.id);
-        setShowVehicleMenu(false);
+        window.location.reload(); 
     };
 
-    const iconMap: any = {
-        'car': 'directions_car',
-        'moto': 'two_wheeler'
-    };
+    const iconMap: any = { 'car': 'directions_car', 'moto': 'two_wheeler' };
+    
+    if (!vehicle) return null;
 
     const formatItvDisplay = (dateStr: string) => {
         if (!dateStr) return "";
@@ -431,14 +331,38 @@ const Dashboard: React.FC = () => {
         return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
     };
 
-    const handleTaskClick = (task: any) => {
-        navigate('/task-detail', { state: { task, vehicle } });
+    // --- Color Logic ---
+    const getCardStyles = (days: number | null) => {
+        const base = "rounded-2xl p-6 shadow-soft border transition-colors duration-300";
+        if (days === null) return `${base} bg-card-light dark:bg-card-dark border-gray-100 dark:border-white/5`;
+        
+        if (days <= 0) {
+            // Rojo (Vencido/Hoy)
+            return `${base} bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-900/50`;
+        } else if (days < 15) {
+            // Amarillo (< 15 días)
+            return `${base} bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-900/50`;
+        } else if (days > 30) {
+             // Verdoso (> 30 días)
+             return `${base} bg-emerald-50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-900/50`;
+        }
+        
+        // 15-30 días (Default)
+        return `${base} bg-card-light dark:bg-card-dark border-gray-100 dark:border-white/5`;
     };
 
-    const clearReminders = () => {
-        setReminders([]);
-        localStorage.removeItem('autominder_reminders');
-        setShowNotifications(false);
+    const getIconStyles = (days: number | null) => {
+        const base = "h-10 w-10 rounded-lg flex items-center justify-center transition-colors duration-300";
+         if (days === null) return `${base} bg-primary/20 text-primary`;
+
+        if (days <= 0) {
+            return `${base} bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400`;
+        } else if (days < 15) {
+             return `${base} bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400`;
+        } else if (days > 30) {
+             return `${base} bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400`;
+        }
+        return `${base} bg-primary/20 text-primary`;
     };
 
     return (
@@ -453,52 +377,6 @@ const Dashboard: React.FC = () => {
                         <h1 className="text-xl font-bold tracking-tight">Car Care App</h1>
                     </div>
                     <div className="flex gap-2 relative">
-                        {/* Notification Bell */}
-                        <button 
-                            onClick={() => setShowNotifications(!showNotifications)}
-                            className="relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-text-main dark:text-white"
-                        >
-                            <span className="material-symbols-outlined">notifications</span>
-                            {reminders.length > 0 && (
-                                <span className="absolute top-2 right-2 h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-white dark:border-[#1a2c20]"></span>
-                            )}
-                        </button>
-                        
-                        {/* Notification Dropdown */}
-                        {showNotifications && (
-                            <>
-                                <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)}></div>
-                                <div className="absolute top-full right-0 mt-2 w-80 bg-white dark:bg-[#1a2c20] rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100 origin-top-right">
-                                    <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
-                                        <h3 className="font-bold text-sm text-gray-900 dark:text-white">Recordatorios</h3>
-                                        {reminders.length > 0 && (
-                                            <button onClick={clearReminders} className="text-xs text-primary hover:underline">Borrar todo</button>
-                                        )}
-                                    </div>
-                                    <div className="max-h-64 overflow-y-auto">
-                                        {reminders.length === 0 ? (
-                                            <div className="p-8 text-center text-gray-500 text-sm">
-                                                No tienes recordatorios activos.
-                                            </div>
-                                        ) : (
-                                            reminders.map((rem, i) => (
-                                                <div key={i} className="p-4 border-b border-gray-50 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-                                                    <div className="flex items-start gap-3">
-                                                        <div className="mt-0.5 h-2 w-2 rounded-full bg-primary shrink-0"></div>
-                                                        <div>
-                                                            <p className="text-sm font-bold text-gray-900 dark:text-white">{rem.title}</p>
-                                                            <p className="text-xs text-gray-500">{rem.vehicleName}</p>
-                                                            <p className="text-[10px] text-gray-400 mt-1">Recordar en 1 semana</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))
-                                        )}
-                                    </div>
-                                </div>
-                            </>
-                        )}
-
                         <Link to="/garage" className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-text-main dark:text-white" title="Mi Garaje">
                             <span className="material-symbols-outlined">garage_home</span>
                         </Link>
@@ -509,6 +387,9 @@ const Dashboard: React.FC = () => {
             
             {/* Main Content */}
             <main className="flex-1 w-full max-w-[960px] mx-auto px-4 md:px-6 py-6 pb-24">
+                
+                <NotificationBanner messages={notifications} onClose={() => setNotifications([])} />
+
                 {/* Greeting & Vehicle Selector */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4 relative z-20">
                     <div className="relative">
@@ -563,8 +444,6 @@ const Dashboard: React.FC = () => {
                                             </button>
                                         ))}
                                     </div>
-                                    
-                                    {/* Linea fina y Añadir otro vehiculo */}
                                     <div className="border-t border-gray-100 dark:border-gray-700 p-2 bg-gray-50/50 dark:bg-white/5">
                                         <button 
                                             onClick={() => navigate('/')} 
@@ -587,33 +466,28 @@ const Dashboard: React.FC = () => {
                     </div>
                 </div>
                 
-                {/* Main Content Grid: Tasks & Sidebar (ITV + Health) */}
+                {/* Main Content Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6 relative z-10">
                     
-                    {/* Left Column: Maintenance Tasks Only */}
+                    {/* Tasks List */}
                     <div className="md:col-span-7 lg:col-span-8 flex flex-col gap-6">
-                        {/* Upcoming Tasks Section */}
                         <div>
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-lg font-bold">Mantenimiento {vehicle.make}</h3>
+                                <h3 className="text-lg font-bold">Plan de Mantenimiento</h3>
                                 <button className="text-sm font-bold text-primary hover:underline">Ver plan completo</button>
                             </div>
                             <div className="flex flex-col gap-3">
                                 {tasks.map((task, idx) => (
-                                    <div key={idx} onClick={() => handleTaskClick(task)} className="group bg-card-light dark:bg-card-dark rounded-xl p-4 shadow-sm border border-gray-100 dark:border-white/5 hover:border-primary/50 transition-all cursor-pointer flex items-center gap-4">
+                                    <div key={idx} onClick={() => navigate('/task-detail', { state: { task, vehicle } })} className="group bg-card-light dark:bg-card-dark rounded-xl p-4 shadow-sm border border-gray-100 dark:border-white/5 hover:border-primary/50 transition-all cursor-pointer flex items-center gap-4">
                                         <div className={`h-12 w-12 rounded-lg ${task.bg} flex items-center justify-center ${task.color} shrink-0`}>
                                             <span className="material-symbols-outlined">{task.icon}</span>
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <div className="flex justify-between items-start">
-                                                <h4 className="font-bold text-text-main dark:text-white truncate">{task.title}</h4>
-                                                {/* Removed Priority Tag */}
-                                            </div>
+                                            <h4 className="font-bold text-text-main dark:text-white truncate">{task.title}</h4>
                                             <p className="text-sm text-text-muted dark:text-text-muted-dark truncate mt-0.5">{task.subtitle}</p>
                                         </div>
                                         <div className="text-right shrink-0">
                                             <p className="text-sm font-bold text-text-main dark:text-white">{task.remaining}</p>
-                                            <p className="text-xs text-text-muted dark:text-text-muted-dark">Estimado</p>
                                         </div>
                                     </div>
                                 ))}
@@ -621,33 +495,32 @@ const Dashboard: React.FC = () => {
                         </div>
                     </div>
                     
-                    {/* Right Sidebar: ITV & Health Status */}
+                    {/* Sidebar: ITV & Insurance */}
                     <div className="md:col-span-5 lg:col-span-4 flex flex-col gap-6">
                         {/* ITV Module */}
-                        <div className="bg-card-light dark:bg-card-dark rounded-2xl p-6 shadow-soft border border-gray-100 dark:border-white/5 relative overflow-hidden">
+                        <div className={getCardStyles(daysToItv)}>
                             <div className="flex justify-between items-start mb-4">
                                 <div>
                                     <h3 className="font-bold text-lg text-text-main dark:text-white">Próxima ITV</h3>
                                     <p className="text-xs text-text-muted dark:text-text-muted-dark">Inspección Técnica</p>
                                 </div>
-                                <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${daysToItv !== null && daysToItv < 30 ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' : 'bg-primary/20 text-primary'}`}>
+                                <div className={getIconStyles(daysToItv)}>
                                     <span className="material-symbols-outlined">event_available</span>
                                 </div>
                             </div>
-                            
                             <div className="mb-4">
                                 {itvDate ? (
-                                    <div className={`text-center py-2 bg-background-light dark:bg-white/5 rounded-xl border border-dashed ${daysToItv !== null && daysToItv < 0 ? 'border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-900/10' : 'border-gray-200 dark:border-gray-700'}`}>
+                                    <div className={`text-center py-2 bg-white/50 dark:bg-black/10 rounded-xl border border-dashed border-current/20`}>
                                         {daysToItv !== null && daysToItv < 0 ? (
                                             <span className="text-3xl font-extrabold text-red-600 dark:text-red-400 block tracking-wider">
                                                 CADUCADA
                                             </span>
                                         ) : (
                                             <span className="text-3xl font-extrabold text-text-main dark:text-white block">
-                                                {daysToItv} <span className="text-sm font-normal text-text-muted">días</span>
+                                                {daysToItv} <span className="text-sm font-normal opacity-70">días</span>
                                             </span>
                                         )}
-                                        <span className={`text-xs font-semibold uppercase tracking-wide capitalize ${daysToItv !== null && daysToItv < 0 ? 'text-red-500/80 dark:text-red-400/70' : 'text-text-muted'}`}>
+                                        <span className={`text-xs font-semibold uppercase tracking-wide capitalize opacity-70`}>
                                             {formatItvDisplay(itvDate)}
                                         </span>
                                     </div>
@@ -657,7 +530,6 @@ const Dashboard: React.FC = () => {
                                     </div>
                                 )}
                             </div>
-                            
                             <label className="block w-full">
                                 <span className="text-xs font-bold text-text-muted dark:text-text-muted-dark mb-1 block">Vencimiento (Mes/Año)</span>
                                 <input 
@@ -669,31 +541,31 @@ const Dashboard: React.FC = () => {
                             </label>
                         </div>
 
-                         {/* Insurance Module - NEW */}
-                        <div className="bg-card-light dark:bg-card-dark rounded-2xl p-6 shadow-soft border border-gray-100 dark:border-white/5 relative overflow-hidden">
+                         {/* Insurance Module with Ad */}
+                        <div className={getCardStyles(daysToInsurance)}>
                             <div className="flex justify-between items-start mb-4">
                                 <div>
                                     <h3 className="font-bold text-lg text-text-main dark:text-white">Seguro</h3>
                                     <p className="text-xs text-text-muted dark:text-text-muted-dark">Fecha de renovación</p>
                                 </div>
-                                <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${daysToInsurance !== null && daysToInsurance < 30 ? (daysToInsurance < 0 ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400') : 'bg-primary/20 text-primary'}`}>
+                                <div className={getIconStyles(daysToInsurance)}>
                                     <span className="material-symbols-outlined">health_and_safety</span>
                                 </div>
                             </div>
                             
                             <div className="mb-4">
                                 {insuranceDate ? (
-                                    <div className={`text-center py-2 bg-background-light dark:bg-white/5 rounded-xl border border-dashed ${daysToInsurance !== null && daysToInsurance < 0 ? 'border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-900/10' : (daysToInsurance !== null && daysToInsurance < 30 ? 'border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-900/10' : 'border-gray-200 dark:border-gray-700')}`}>
+                                    <div className={`text-center py-2 bg-white/50 dark:bg-black/10 rounded-xl border border-dashed border-current/20`}>
                                         {daysToInsurance !== null && daysToInsurance < 0 ? (
                                             <span className="text-3xl font-extrabold text-red-600 dark:text-red-400 block tracking-wider">
                                                 VENCIDO
                                             </span>
                                         ) : (
-                                            <span className={`text-3xl font-extrabold block ${daysToInsurance !== null && daysToInsurance < 30 ? 'text-amber-600 dark:text-amber-400' : 'text-text-main dark:text-white'}`}>
-                                                {daysToInsurance} <span className="text-sm font-normal text-text-muted">días</span>
+                                            <span className="text-3xl font-extrabold text-text-main dark:text-white block">
+                                                {daysToInsurance} <span className="text-sm font-normal opacity-70">días</span>
                                             </span>
                                         )}
-                                        <span className={`text-xs font-semibold uppercase tracking-wide capitalize ${daysToInsurance !== null && daysToInsurance < 0 ? 'text-red-500/80 dark:text-red-400/70' : (daysToInsurance !== null && daysToInsurance < 30 ? 'text-amber-600/80 dark:text-amber-400/70' : 'text-text-muted')}`}>
+                                        <span className={`text-xs font-semibold uppercase tracking-wide capitalize opacity-70`}>
                                             {formatDateDisplay(insuranceDate)}
                                         </span>
                                     </div>
@@ -703,8 +575,8 @@ const Dashboard: React.FC = () => {
                                     </div>
                                 )}
                             </div>
-                            
-                            <label className="block w-full">
+
+                            <label className="block w-full mb-4">
                                 <span className="text-xs font-bold text-text-muted dark:text-text-muted-dark mb-1 block">Vencimiento (Día exacto)</span>
                                 <input 
                                     type="date" 
@@ -713,49 +585,35 @@ const Dashboard: React.FC = () => {
                                     className="block w-full text-sm text-text-main dark:text-white bg-white dark:bg-[#15231b] border border-gray-200 dark:border-[#2a3c30] rounded-lg px-3 py-2 focus:ring-primary focus:border-primary"
                                 />
                             </label>
-                        </div>
 
-                         {/* Health Status Card (Moved Here - Below ITV) */}
-                         <div className="bg-card-light dark:bg-card-dark rounded-2xl p-6 shadow-soft border border-gray-100 dark:border-white/5 relative overflow-hidden group">
-                            {/* Abstract Background Decoration */}
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-                            <div className="flex flex-col items-center gap-6 relative z-10">
-                                {/* Circular Progress */}
-                                <div className="relative h-40 w-40 shrink-0">
-                                    <svg className="h-full w-full -rotate-90 transform" viewBox="0 0 100 100">
-                                        <circle className="text-gray-100 dark:text-white/5" cx="50" cy="50" fill="transparent" r="42" stroke="currentColor" strokeWidth="8"></circle>
-                                        <circle className="text-primary transition-all duration-1000 ease-out" cx="50" cy="50" fill="transparent" r="42" stroke="currentColor" strokeDasharray="264" strokeDashoffset="40" strokeLinecap="round" strokeWidth="8"></circle>
-                                    </svg>
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                                        <span className="text-3xl font-extrabold text-text-main dark:text-white">85%</span>
-                                        <span className="text-[10px] font-semibold uppercase tracking-wider text-text-muted dark:text-text-muted-dark">Salud</span>
-                                    </div>
-                                </div>
-                                {/* Text Content */}
-                                <div className="flex flex-col text-center w-full">
-                                    <h3 className="text-lg font-bold mb-2">Todo en orden</h3>
-                                    <p className="text-sm text-text-muted dark:text-text-muted-dark mb-4 leading-relaxed">
-                                        Hemos cargado el plan oficial de {vehicle.make}. Tienes tareas pendientes.
-                                    </p>
-                                    <div className="flex justify-center">
-                                        <span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-bold">
-                                            <span className="material-symbols-outlined text-sm mr-1">check_circle</span>
-                                            General OK
+                            {/* Discrete Ad */}
+                            <div className="border-t border-dashed border-gray-200 dark:border-gray-700 pt-3 mt-2">
+                                <p className="text-[10px] uppercase font-bold text-gray-400 mb-1 tracking-wider">Patrocinado</p>
+                                <a href="#" className="flex items-center justify-between group">
+                                    <div className="flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-gray-400 group-hover:text-primary transition-colors text-lg">
+                                            {vehicle.type === 'moto' ? 'two_wheeler' : 'directions_car'}
+                                        </span>
+                                        <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 group-hover:text-primary transition-colors">
+                                            {vehicle.type === 'moto' 
+                                                ? 'Seguros de Moto desde 79€' 
+                                                : 'Comparador: Ahorra hasta 40%'}
                                         </span>
                                     </div>
-                                </div>
+                                    <span className="material-symbols-outlined text-gray-300 text-sm group-hover:text-primary">open_in_new</span>
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
             </main>
-            {/* Floating Action Button (FAB) */}
-            <div className="fixed bottom-6 right-6 z-50 md:hidden">
-                <button className="flex items-center justify-center gap-2 h-14 pl-5 pr-6 bg-primary hover:bg-primary-hover text-[#111813] rounded-full shadow-lg shadow-primary/30 transition-transform active:scale-95">
-                    <span className="material-symbols-outlined text-2xl">add</span>
-                    <span className="font-bold text-base">KM</span>
-                </button>
-            </div>
+            
+            <KmUpdateModal 
+                isOpen={showKmModal} 
+                onClose={() => setShowKmModal(false)} 
+                onSave={handleSaveKm} 
+                currentKm={vehicle.mileage} 
+            />
         </div>
     );
 };
