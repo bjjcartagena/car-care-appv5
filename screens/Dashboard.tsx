@@ -11,7 +11,7 @@ const NotificationBanner: React.FC<{ messages: string[], onClose: () => void }> 
             {messages.map((msg, idx) => (
                 <div key={idx} className="bg-primary/10 border border-primary/20 p-4 rounded-xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
                     <span className="material-symbols-outlined text-primary">notifications_active</span>
-                    <p className="text-sm font-medium text-text-main dark:text-white flex-1">{msg}</p>
+                    <p className="text-sm font-medium text-text-main dark:text-text-main-dark flex-1">{msg}</p>
                     <button onClick={onClose} className="text-text-muted hover:text-text-main">
                         <span className="material-symbols-outlined text-lg">close</span>
                     </button>
@@ -26,26 +26,26 @@ const KmUpdateModal: React.FC<{ isOpen: boolean, onClose: () => void, onSave: (k
     if (!isOpen) return null;
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className="bg-white dark:bg-[#1a2c20] w-full max-w-sm rounded-2xl p-6 shadow-xl animate-in zoom-in-95">
+            <div className="bg-card-light dark:bg-card-dark w-full max-w-sm rounded-2xl p-6 shadow-xl animate-in zoom-in-95 border border-gray-200 dark:border-gray-700">
                 <div className="flex justify-center mb-4">
                      <div className="h-12 w-12 bg-primary/20 rounded-full flex items-center justify-center text-primary">
                         <span className="material-symbols-outlined text-2xl">speed</span>
                     </div>
                 </div>
-                <h3 className="text-lg font-bold mb-2 text-center text-text-main dark:text-white">Actualización Semanal</h3>
-                <p className="text-sm text-text-muted mb-6 text-center">Para mantener el plan de mantenimiento preciso, por favor actualiza el kilometraje actual.</p>
+                <h3 className="text-lg font-bold mb-2 text-center text-text-main dark:text-text-main-dark">Actualización Semanal</h3>
+                <p className="text-sm text-text-muted dark:text-text-muted-dark mb-6 text-center">Para mantener el plan de mantenimiento preciso, por favor actualiza el kilometraje actual.</p>
                 
                 <input 
                     type="number" 
                     value={km} 
                     onChange={(e) => setKm(e.target.value)}
-                    className="w-full text-3xl font-black text-center py-4 bg-background-light dark:bg-white/5 rounded-xl border border-gray-200 dark:border-gray-700 mb-6 focus:ring-primary focus:border-primary"
+                    className="w-full text-3xl font-black text-center py-4 bg-background-light dark:bg-background-dark rounded-xl border border-gray-200 dark:border-gray-700 mb-6 focus:ring-primary focus:border-primary text-text-main dark:text-text-main-dark"
                     autoFocus
                 />
                 
                 <div className="flex gap-3">
                     <button onClick={onClose} className="flex-1 py-3 text-sm font-bold text-gray-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">Omitir</button>
-                    <button onClick={() => onSave(km)} className="flex-1 py-3 bg-primary hover:bg-primary-hover text-[#052912] font-bold rounded-xl shadow-lg shadow-primary/20 transition-all">Guardar KM</button>
+                    <button onClick={() => onSave(km)} className="flex-1 py-3 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all">Guardar KM</button>
                 </div>
             </div>
         </div>
@@ -356,7 +356,7 @@ const Dashboard: React.FC = () => {
     // --- Color Logic ---
     const getCardStyles = (days: number | null) => {
         const base = "rounded-2xl p-6 shadow-soft border transition-colors duration-300";
-        if (days === null) return `${base} bg-card-light dark:bg-card-dark border-gray-100 dark:border-white/5`;
+        if (days === null) return `${base} bg-card-light dark:bg-card-dark border-gray-200 dark:border-gray-700`;
         
         if (days <= 0) {
             // Rojo (Vencido/Hoy - 0 días o menos)
@@ -384,7 +384,7 @@ const Dashboard: React.FC = () => {
     };
 
     return (
-        <div className="flex flex-col min-h-screen bg-background-light dark:bg-background-dark text-text-main dark:text-text-light antialiased transition-colors duration-200">
+        <div className="flex flex-col min-h-screen bg-background-light dark:bg-background-dark text-text-main dark:text-text-main-dark antialiased transition-colors duration-200">
             {/* Top Navigation Bar */}
             <header className="sticky top-0 z-40 w-full bg-card-light/80 dark:bg-card-dark/80 backdrop-blur-md border-b border-[#f0f5f1] dark:border-[#2a3c30]">
                 <div className="max-w-[960px] mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
@@ -395,7 +395,7 @@ const Dashboard: React.FC = () => {
                         <h1 className="text-xl font-bold tracking-tight">Car Care App</h1>
                     </div>
                     <div className="flex gap-2 relative">
-                        <Link to="/garage" className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-text-main dark:text-white" title="Mi Garaje">
+                        <Link to="/garage" className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-text-main dark:text-text-main-dark" title="Mi Garaje">
                             <span className="material-symbols-outlined">garage_home</span>
                         </Link>
                         <DarkModeToggle />
@@ -419,7 +419,7 @@ const Dashboard: React.FC = () => {
                                 onChange={(e) => setUserName(e.target.value)}
                                 onBlur={handleNameSave}
                                 onKeyDown={handleNameKeyDown}
-                                className="text-sm font-medium mb-1 bg-transparent border-b border-primary outline-none text-text-main dark:text-white w-40"
+                                className="text-sm font-medium mb-1 bg-transparent border-b border-primary outline-none text-text-main dark:text-text-main-dark w-40"
                             />
                         ) : (
                             <div 
@@ -451,7 +451,7 @@ const Dashboard: React.FC = () => {
                                             <button 
                                                 key={v.id}
                                                 onClick={() => switchVehicle(v)}
-                                                className={`w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors ${v.id === vehicle.id ? 'bg-primary/5 text-primary' : 'text-text-main dark:text-white'}`}
+                                                className={`w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors ${v.id === vehicle.id ? 'bg-primary/5 text-primary' : 'text-text-main dark:text-text-main-dark'}`}
                                             >
                                                 <span className="material-symbols-outlined text-xl">{iconMap[v.type] || 'directions_car'}</span>
                                                 <div className="flex-1 min-w-0">
@@ -478,7 +478,7 @@ const Dashboard: React.FC = () => {
                         )}
                     </div>
 
-                    <div className="inline-flex items-center px-3 py-1 bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-full shadow-sm">
+                    <div className="inline-flex items-center px-3 py-1 bg-white dark:bg-white/5 border border-gray-100 dark:border-gray-700 rounded-full shadow-sm">
                         <span className="material-symbols-outlined text-primary text-sm mr-2">speed</span>
                         <span className="font-bold text-sm">{vehicle.mileage} KM</span>
                     </div>
@@ -496,16 +496,16 @@ const Dashboard: React.FC = () => {
                             </div>
                             <div className="flex flex-col gap-3">
                                 {tasks.map((task, idx) => (
-                                    <div key={idx} onClick={() => navigate('/task-detail', { state: { task, vehicle } })} className="group bg-card-light dark:bg-card-dark rounded-xl p-4 shadow-sm border border-gray-100 dark:border-white/5 hover:border-primary/50 transition-all cursor-pointer flex items-center gap-4">
+                                    <div key={idx} onClick={() => navigate('/task-detail', { state: { task, vehicle } })} className="group bg-card-light dark:bg-card-dark rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700 hover:border-primary/50 transition-all cursor-pointer flex items-center gap-4">
                                         <div className={`h-12 w-12 rounded-lg ${task.bg} flex items-center justify-center ${task.color} shrink-0`}>
                                             <span className="material-symbols-outlined">{task.icon}</span>
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h4 className="font-bold text-text-main dark:text-white truncate">{task.title}</h4>
+                                            <h4 className="font-bold text-text-main dark:text-text-main-dark truncate">{task.title}</h4>
                                             <p className="text-sm text-text-muted dark:text-text-muted-dark truncate mt-0.5">{task.subtitle}</p>
                                         </div>
                                         <div className="text-right shrink-0">
-                                            <p className="text-sm font-bold text-text-main dark:text-white">{task.remaining}</p>
+                                            <p className="text-sm font-bold text-text-main dark:text-text-main-dark">{task.remaining}</p>
                                         </div>
                                     </div>
                                 ))}
@@ -519,7 +519,7 @@ const Dashboard: React.FC = () => {
                         <div className={getCardStyles(daysToItv)}>
                             <div className="flex justify-between items-start mb-4">
                                 <div>
-                                    <h3 className="font-bold text-lg text-text-main dark:text-white">Próxima ITV</h3>
+                                    <h3 className="font-bold text-lg text-text-main dark:text-text-main-dark">Próxima ITV</h3>
                                     <p className="text-xs text-text-muted dark:text-text-muted-dark">Inspección Técnica</p>
                                 </div>
                                 <div className={getIconStyles(daysToItv)}>
@@ -534,7 +534,7 @@ const Dashboard: React.FC = () => {
                                                 CADUCADA
                                             </span>
                                         ) : (
-                                            <span className="text-3xl font-extrabold text-text-main dark:text-white block">
+                                            <span className="text-3xl font-extrabold text-text-main dark:text-text-main-dark block">
                                                 {daysToItv} <span className="text-sm font-normal opacity-70">días</span>
                                             </span>
                                         )}
@@ -554,7 +554,7 @@ const Dashboard: React.FC = () => {
                                     type="month" 
                                     value={itvDate} 
                                     onChange={(e) => saveItvDate(e.target.value)}
-                                    className="block w-full text-sm text-text-main dark:text-white bg-white dark:bg-[#15231b] border border-gray-200 dark:border-[#2a3c30] rounded-lg px-3 py-2 focus:ring-primary focus:border-primary"
+                                    className="block w-full text-sm text-text-main dark:text-text-main-dark bg-white dark:bg-[#15231b] border border-gray-200 dark:border-[#2a3c30] rounded-lg px-3 py-2 focus:ring-primary focus:border-primary"
                                 />
                             </label>
                         </div>
@@ -563,7 +563,7 @@ const Dashboard: React.FC = () => {
                         <div className={getCardStyles(daysToInsurance)}>
                             <div className="flex justify-between items-start mb-4">
                                 <div>
-                                    <h3 className="font-bold text-lg text-text-main dark:text-white">Seguro</h3>
+                                    <h3 className="font-bold text-lg text-text-main dark:text-text-main-dark">Seguro</h3>
                                     <p className="text-xs text-text-muted dark:text-text-muted-dark">Fecha de renovación</p>
                                 </div>
                                 <div className={getIconStyles(daysToInsurance)}>
@@ -579,7 +579,7 @@ const Dashboard: React.FC = () => {
                                                 VENCIDO
                                             </span>
                                         ) : (
-                                            <span className="text-3xl font-extrabold text-text-main dark:text-white block">
+                                            <span className="text-3xl font-extrabold text-text-main dark:text-text-main-dark block">
                                                 {daysToInsurance} <span className="text-sm font-normal opacity-70">días</span>
                                             </span>
                                         )}
@@ -600,7 +600,7 @@ const Dashboard: React.FC = () => {
                                     type="date" 
                                     value={insuranceDate} 
                                     onChange={(e) => saveInsuranceDate(e.target.value)}
-                                    className="block w-full text-sm text-text-main dark:text-white bg-white dark:bg-[#15231b] border border-gray-200 dark:border-[#2a3c30] rounded-lg px-3 py-2 focus:ring-primary focus:border-primary"
+                                    className="block w-full text-sm text-text-main dark:text-text-main-dark bg-white dark:bg-[#15231b] border border-gray-200 dark:border-[#2a3c30] rounded-lg px-3 py-2 focus:ring-primary focus:border-primary"
                                 />
                             </label>
 
