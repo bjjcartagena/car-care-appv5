@@ -223,10 +223,10 @@ const Dashboard: React.FC = () => {
                     setItvDate(storedItv);
                     const days = getDaysDiff(storedItv, true); // True for end of month logic
                     setDaysToItv(days);
-                    if ([30, 14, 7].includes(days)) {
+                    if ([30, 14, 7].includes(days) && days > 0) {
                         newNotes.push(`🚗 Tu ITV caduca en ${days} días.`);
-                    } else if (days < 0) {
-                        newNotes.push(`⚠️ Tu ITV ha caducado hace ${Math.abs(days)} días.`);
+                    } else if (days <= 0) {
+                        newNotes.push(`⚠️ Tu ITV ha caducado.`);
                     }
                 } else {
                     setItvDate('');
@@ -240,10 +240,10 @@ const Dashboard: React.FC = () => {
                     setInsuranceDate(storedInsurance);
                     const days = getDaysDiff(storedInsurance, false);
                     setDaysToInsurance(days);
-                    if ([30, 7].includes(days)) {
+                    if ([30, 7].includes(days) && days > 0) {
                         newNotes.push(`📄 Tu Seguro vence en ${days} días.`);
-                    } else if (days < 0) {
-                        newNotes.push(`⚠️ Tu Seguro ha vencido hace ${Math.abs(days)} días.`);
+                    } else if (days <= 0) {
+                        newNotes.push(`⚠️ Tu Seguro ha vencido.`);
                     }
                 } else {
                     setInsuranceDate('');
@@ -359,18 +359,15 @@ const Dashboard: React.FC = () => {
         if (days === null) return `${base} bg-card-light dark:bg-card-dark border-gray-100 dark:border-white/5`;
         
         if (days <= 0) {
-            // Rojo (Vencido/Hoy)
+            // Rojo (Vencido/Hoy - 0 días o menos)
             return `${base} bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-900/50`;
-        } else if (days < 15) {
-            // Amarillo (< 15 días)
+        } else if (days <= 30) {
+            // Amarillento (30 días o menos, pero más de 0)
             return `${base} bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-900/50`;
-        } else if (days > 30) {
+        } else {
              // Verdoso (> 30 días)
              return `${base} bg-emerald-50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-900/50`;
         }
-        
-        // 15-30 días (Default)
-        return `${base} bg-card-light dark:bg-card-dark border-gray-100 dark:border-white/5`;
     };
 
     const getIconStyles = (days: number | null) => {
@@ -379,12 +376,11 @@ const Dashboard: React.FC = () => {
 
         if (days <= 0) {
             return `${base} bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400`;
-        } else if (days < 15) {
+        } else if (days <= 30) {
              return `${base} bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400`;
-        } else if (days > 30) {
+        } else {
              return `${base} bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400`;
         }
-        return `${base} bg-primary/20 text-primary`;
     };
 
     return (
@@ -533,7 +529,7 @@ const Dashboard: React.FC = () => {
                             <div className="mb-4">
                                 {itvDate ? (
                                     <div className={`text-center py-2 bg-white/50 dark:bg-black/10 rounded-xl border border-dashed border-current/20`}>
-                                        {daysToItv !== null && daysToItv < 0 ? (
+                                        {daysToItv !== null && daysToItv <= 0 ? (
                                             <span className="text-3xl font-extrabold text-red-600 dark:text-red-400 block tracking-wider">
                                                 CADUCADA
                                             </span>
@@ -578,7 +574,7 @@ const Dashboard: React.FC = () => {
                             <div className="mb-4">
                                 {insuranceDate ? (
                                     <div className={`text-center py-2 bg-white/50 dark:bg-black/10 rounded-xl border border-dashed border-current/20`}>
-                                        {daysToInsurance !== null && daysToInsurance < 0 ? (
+                                        {daysToInsurance !== null && daysToInsurance <= 0 ? (
                                             <span className="text-3xl font-extrabold text-red-600 dark:text-red-400 block tracking-wider">
                                                 VENCIDO
                                             </span>
