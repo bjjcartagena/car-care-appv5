@@ -97,34 +97,53 @@ const calculateRemaining = (taskKey: string, intervalKm: number, currentKm: numb
 
 const getMaintenanceTasks = (type: string, make: string, km: number, history: any, vehicleId: string) => {
     const tasks = [];
+    
+    // --- MOTO ---
     if (type === 'moto') {
+        // 1. Aceite (Solo Aceite)
         tasks.push({
             id: 'engine_oil_moto',
             title: "Aceite de Motor",
             icon: "oil_barrel",
             color: "text-orange-600 dark:text-orange-400",
             bg: "bg-orange-50 dark:bg-orange-900/20",
-            subtitle: "Cambio cada 6.000 km",
+            subtitle: "Lubricación del motor",
             remaining: calculateRemaining('engine_oil_moto', 6000, km, history, vehicleId, "1.200 KM"),
         });
+
+        // 2. Filtros (Agrupados)
         tasks.push({
-            id: 'oil_filter_moto',
-            title: "Filtro de Aceite",
+            id: 'filters_moto',
+            title: "Filtros",
             icon: "filter_alt",
             color: "text-yellow-600 dark:text-yellow-400",
             bg: "bg-yellow-50 dark:bg-yellow-900/20",
-            subtitle: "Sustitución cada 6.000 km",
-            remaining: calculateRemaining('oil_filter_moto', 6000, km, history, vehicleId, "1.200 KM"),
+            subtitle: "Aceite, Aire, Combustible",
+            remaining: calculateRemaining('filters_moto', 6000, km, history, vehicleId, "1.200 KM"),
         });
+
+        // 3. Neumáticos (Delantero y Trasero separados)
         tasks.push({
-            id: 'gearbox_oil',
-            title: "Aceite Caja Cambios",
-            icon: "settings_suggest",
-            color: "text-indigo-600 dark:text-indigo-400",
-            bg: "bg-indigo-50 dark:bg-indigo-900/20",
-            subtitle: "Revisar cada 6.000 km",
-            remaining: calculateRemaining('gearbox_oil', 6000, km, history, vehicleId, "1.200 KM"),
+            id: 'tire_front',
+            title: "Neumático Delantero",
+            icon: "trip_origin", // Looks like a wheel
+            color: "text-blue-600 dark:text-blue-400",
+            bg: "bg-blue-50 dark:bg-blue-900/20",
+            subtitle: "Desgaste y presión",
+            remaining: calculateRemaining('tire_front', 15000, km, history, vehicleId, "5.000 KM"),
         });
+        
+        tasks.push({
+            id: 'tire_rear',
+            title: "Neumático Trasero",
+            icon: "tire_repair",
+            color: "text-blue-700 dark:text-blue-300",
+            bg: "bg-blue-100 dark:bg-blue-800/30",
+            subtitle: "Desgaste y tracción",
+            remaining: calculateRemaining('tire_rear', 10000, km, history, vehicleId, "3.000 KM"),
+        });
+
+        // 4. Mecánica Específica
         tasks.push({
             id: 'chain',
             title: "Engrase de Cadena",
@@ -134,36 +153,65 @@ const getMaintenanceTasks = (type: string, make: string, km: number, history: an
             subtitle: "Cada 500-1000 km",
             remaining: calculateRemaining('chain', 800, km, history, vehicleId, "350 KM"),
         });
+
         if (make === 'Ducati') {
             tasks.push({
                 id: 'desmo',
-                title: "Desmo Service (Válvulas)",
+                title: "Desmo Service",
                 icon: "settings_suggest",
                 color: "text-red-600 dark:text-red-400",
                 bg: "bg-red-50 dark:bg-red-900/20",
-                subtitle: "Reglaje desmodrómico",
+                subtitle: "Reglaje de Válvulas",
                 remaining: calculateRemaining('desmo', 24000, km, history, vehicleId, "4.500 KM"),
             });
         }
-    } else {
+    } 
+    // --- COCHE ---
+    else {
+        // 1. Aceite (Solo Aceite)
         tasks.push({
             id: 'oil',
-            title: "Aceite y Filtro",
+            title: "Aceite de Motor",
             icon: "oil_barrel",
             color: "text-orange-600 dark:text-orange-400",
             bg: "bg-orange-50 dark:bg-orange-900/20",
-            subtitle: "Intervalo recomendado anual",
+            subtitle: "Sustitución lubricante",
             remaining: calculateRemaining('oil', 15000, km, history, vehicleId, "2.400 KM"),
         });
+
+        // 2. Filtros (Agrupados)
+        tasks.push({
+            id: 'filters_car',
+            title: "Filtros",
+            icon: "filter_alt",
+            color: "text-yellow-600 dark:text-yellow-400",
+            bg: "bg-yellow-50 dark:bg-yellow-900/20",
+            subtitle: "Aceite, Aire, Habitáculo...",
+            remaining: calculateRemaining('filters_car', 15000, km, history, vehicleId, "2.400 KM"),
+        });
+
+        // 3. Neumáticos (General)
+        tasks.push({
+            id: 'tyres_car',
+            title: "Neumáticos",
+            icon: "tire_repair",
+            color: "text-blue-600 dark:text-blue-400",
+            bg: "bg-blue-50 dark:bg-blue-900/20",
+            subtitle: "Rotación o cambio",
+            remaining: calculateRemaining('tyres_car', 40000, km, history, vehicleId, "12.000 KM"),
+        });
+
+        // 4. Mecánica General
         tasks.push({
             id: 'timing_belt',
             title: "Kit Distribución",
             icon: "settings",
             color: "text-gray-600 dark:text-gray-400",
             bg: "bg-gray-100 dark:bg-gray-800",
-            subtitle: "Cambio entre 90.000 y 120.000 km",
+            subtitle: "Cambio preventivo",
             remaining: calculateRemaining('timing_belt', 120000, km, history, vehicleId, "40.000 KM"),
         });
+
         if (['Peugeot', 'Citroën', 'DS Automobiles', 'Opel'].includes(make)) {
              tasks.push({
                 id: 'adblue',
@@ -175,17 +223,16 @@ const getMaintenanceTasks = (type: string, make: string, km: number, history: an
                 remaining: calculateRemaining('adblue', 10000, km, history, vehicleId, "1.200 KM"),
             });
         }
-        if (['BMW', 'Mini'].includes(make)) {
-             tasks.push({
-                id: 'brake_fluid',
-                title: "Líquido de Frenos",
-                icon: "water_drop",
-                color: "text-yellow-600 dark:text-yellow-400",
-                bg: "bg-yellow-50 dark:bg-yellow-900/20",
-                subtitle: "Cambio cada 2 años",
-                remaining: "2 Años", // Time based placeholder
-            });
-        }
+        
+        tasks.push({
+            id: 'brake_fluid',
+            title: "Líquido de Frenos",
+            icon: "water_drop",
+            color: "text-purple-600 dark:text-purple-400",
+            bg: "bg-purple-50 dark:bg-purple-900/20",
+            subtitle: "Seguridad activa",
+            remaining: "2 Años", 
+        });
     }
     return tasks;
 };
