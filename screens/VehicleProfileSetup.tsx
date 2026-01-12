@@ -41,7 +41,9 @@ const VehicleProfileSetup: React.FC = () => {
             make,
             model: model || (isMoto ? "Modelo Desconocido" : "Modelo Desconocido"),
             mileage: mileage || "0",
-            dateAdded: new Date().toISOString()
+            dateAdded: new Date().toISOString(),
+            itvDate: "", // Initialize empty
+            insuranceDate: "" // Initialize empty
         };
 
         // Get existing garage
@@ -77,7 +79,7 @@ const VehicleProfileSetup: React.FC = () => {
                         <div className="flex justify-between items-end mb-3">
                             <div className="flex flex-col gap-1">
                                 <span className="text-xs font-bold uppercase tracking-wider text-[#608a6e] dark:text-[#6e9c80]">Paso 2 de 4</span>
-                                <h2 className="text-sm font-semibold text-[#111813] dark:text-gray-200">Datos del {isMoto ? 'Vehículo' : 'Vehículo'}</h2>
+                                <h2 className="text-sm font-semibold text-[#111813] dark:text-gray-200">Datos del Vehículo</h2>
                             </div>
                             <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">50% Completado</span>
                         </div>
@@ -94,7 +96,7 @@ const VehicleProfileSetup: React.FC = () => {
                                 Vamos a configurar tu {isMoto ? 'moto' : 'coche'}.
                             </h1>
                             <p className="text-[#608a6e] dark:text-[#8bbaa0] text-base leading-relaxed">
-                                Introduce los detalles para cargar el plan de mantenimiento oficial de {isMoto ? 'la marca' : 'el fabricante'}.
+                                Introduce los detalles para cargar el plan de mantenimiento recomendado según el fabricante.
                             </p>
                         </div>
                         
@@ -112,7 +114,7 @@ const VehicleProfileSetup: React.FC = () => {
                                         className="form-input-transition block w-full h-14 rounded-xl border border-[#dbe6df] dark:border-[#354f40] bg-white dark:bg-[#15231b] px-4 text-base text-[#111813] dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none appearance-none bg-none cursor-pointer placeholder:text-[#608a6e]" 
                                         id="vehicle-make"
                                     >
-                                        <option disabled value="">Selecciona marca</option>
+                                        <option disabled value="">Selecciona una marca</option>
                                         {(isMoto ? MOTO_MAKES : CAR_MAKES).map((brand) => (
                                             <option key={brand} value={brand}>{brand}</option>
                                         ))}
