@@ -217,7 +217,8 @@ const Dashboard: React.FC = () => {
                 }
 
                 // 2. ITV Checks (30, 14, 7 days)
-                const storedItv = localStorage.getItem('autominder_itv');
+                // NOW READ FROM VEHICLE OBJECT, NOT GLOBAL
+                const storedItv = activeVehicle.itvDate;
                 if (storedItv) {
                     setItvDate(storedItv);
                     const days = getDaysDiff(storedItv, true); // True for end of month logic
@@ -227,10 +228,14 @@ const Dashboard: React.FC = () => {
                     } else if (days < 0) {
                         newNotes.push(`⚠️ Tu ITV ha caducado hace ${Math.abs(days)} días.`);
                     }
+                } else {
+                    setItvDate('');
+                    setDaysToItv(null);
                 }
 
                 // 3. Insurance Checks (30, 7 days)
-                const storedInsurance = localStorage.getItem('autominder_insurance');
+                // NOW READ FROM VEHICLE OBJECT, NOT GLOBAL
+                const storedInsurance = activeVehicle.insuranceDate;
                 if (storedInsurance) {
                     setInsuranceDate(storedInsurance);
                     const days = getDaysDiff(storedInsurance, false);
@@ -240,6 +245,9 @@ const Dashboard: React.FC = () => {
                     } else if (days < 0) {
                         newNotes.push(`⚠️ Tu Seguro ha vencido hace ${Math.abs(days)} días.`);
                     }
+                } else {
+                    setInsuranceDate('');
+                    setDaysToInsurance(null);
                 }
                 
                 if (newNotes.length > 0) setNotifications(newNotes);
@@ -298,13 +306,27 @@ const Dashboard: React.FC = () => {
 
     const saveItvDate = (date: string) => {
         setItvDate(date);
-        localStorage.setItem('autominder_itv', date);
+        
+        // Update Specific Vehicle in Garage
+        if (vehicle) {
+            const updatedGarage = garage.map(v => v.id === vehicle.id ? { ...v, itvDate: date } : v);
+            setGarage(updatedGarage);
+            localStorage.setItem('autominder_garage', JSON.stringify(updatedGarage));
+        }
+
         setDaysToItv(getDaysDiff(date, true));
     };
 
     const saveInsuranceDate = (date: string) => {
         setInsuranceDate(date);
-        localStorage.setItem('autominder_insurance', date);
+        
+        // Update Specific Vehicle in Garage
+        if (vehicle) {
+            const updatedGarage = garage.map(v => v.id === vehicle.id ? { ...v, insuranceDate: date } : v);
+            setGarage(updatedGarage);
+            localStorage.setItem('autominder_garage', JSON.stringify(updatedGarage));
+        }
+
         setDaysToInsurance(getDaysDiff(date, false));
     };
 
