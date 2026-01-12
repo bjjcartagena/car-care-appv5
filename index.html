@@ -19,20 +19,52 @@
             theme: {
                 extend: {
                     colors: {
-                        "primary": "#0df259",
-                        "primary-hover": "#0be052",
-                        "background-light": "#f5f8f6",
-                        "background-dark": "#102216",
-                        "card-light": "#ffffff",
-                        "card-dark": "#1a2c20",
-                        "surface-light": "#ffffff",
-                        "surface-dark": "#1a2c20",
-                        "text-main": "#111813",
-                        "text-light": "#ffffff",
-                        "text-muted": "#608a6e",
-                        "text-muted-dark": "#8ba695",
-                        "neutral-dark": "#111813", 
-                        "neutral-muted": "#608a6e",
+                        // Semantic Colors (Mapped to CSS Variables for auto-switching)
+                        "primary": "rgb(var(--primary-rgb) / <alpha-value>)",
+                        "primary-hover": "var(--primary-hover)",
+                        "primary-soft": "rgb(var(--primary-rgb) / 0.1)", // Auto soft based on primary
+
+                        // Backgrounds
+                        "background-light": "#F6F8FB",
+                        "background-dark": "#0B1220",
+                        
+                        // Surfaces / Cards
+                        "card-light": "#FFFFFF",
+                        "card-dark": "#111C2E",
+                        "surface-light": "#F1F5F9",
+                        "surface-dark": "#0F1A2B",
+
+                        // Text
+                        "text-main": "#0F172A",
+                        "text-main-dark": "#E5E7EB",
+                        "text-muted": "#475569",
+                        "text-muted-dark": "#94A3B8",
+                        "text-subtle": "#64748B",
+                        "text-light": "#FFFFFF", // Fixed white
+
+                        // Legacy / Helper mappings
+                        "neutral-dark": "#0F172A", 
+                        "neutral-muted": "#475569",
+
+                        // Status Colors (Matching request)
+                        "success": "#16A34A",
+                        "warning": "#F59E0B",
+                        "danger": "#EF4444",
+                        "info": "#0EA5E9",
+
+                        // Override Grays to match Border/Surface specs
+                        gray: {
+                            50: '#F8FAFC',
+                            100: '#F1F5F9', // Surface 2 Light
+                            200: '#E2E8F0', // Border Light
+                            300: '#CBD5E1',
+                            400: '#94A3B8', // Text Muted Dark
+                            500: '#64748B', // Text Subtle
+                            600: '#475569', // Text Muted Light
+                            700: '#243044', // Border Dark
+                            800: '#111C2E', // Surface Dark
+                            900: '#0F172A', // Text Main Light
+                        }
                     },
                     fontFamily: {
                         "display": ["Manrope", "sans-serif"]
@@ -46,7 +78,7 @@
                     },
                     boxShadow: {
                         "soft": "0 4px 20px -2px rgba(0, 0, 0, 0.05)",
-                        "glow": "0 0 15px rgba(13, 242, 89, 0.3)"
+                        "glow": "0 0 15px rgba(37, 99, 235, 0.3)"
                     }
                 },
             },
@@ -59,6 +91,18 @@
         ::-webkit-scrollbar-thumb { background-color: rgba(0, 0, 0, 0.1); border-radius: 4px; }
         .dark ::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.1); }
         .form-input-transition { transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+
+        /* CSS Variables for Primary Color Switching with Opacity Support */
+        :root {
+            /* Light Mode: #2563EB -> 37 99 235 */
+            --primary-rgb: 37 99 235;
+            --primary-hover: #1D4ED8;
+        }
+        .dark {
+            /* Dark Mode: #3B82F6 -> 59 130 246 */
+            --primary-rgb: 59 130 246;
+            --primary-hover: #60A5FA;
+        }
     </style>
 <script type="importmap">
 {
@@ -70,10 +114,8 @@
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
 </head>
-<body class="bg-background-light dark:bg-background-dark font-display text-neutral-dark dark:text-white transition-colors duration-200">
+<body class="bg-background-light dark:bg-background-dark font-display text-text-main dark:text-text-main-dark transition-colors duration-200">
     <div id="root"></div>
-<script type="module" src="/index.tsx"></script>
 </body>
 </html>
