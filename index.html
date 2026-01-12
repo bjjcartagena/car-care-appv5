@@ -19,10 +19,10 @@
             theme: {
                 extend: {
                     colors: {
-                        // Semantic Colors (Mapped to CSS Variables for auto-switching)
-                        "primary": "rgb(var(--primary-rgb) / <alpha-value>)",
+                        // Semantic Colors with safe function syntax for browser runtime
+                        primary: ({ opacityValue }) => `rgb(var(--primary-rgb) / ${opacityValue ?? 1})`,
                         "primary-hover": "var(--primary-hover)",
-                        "primary-soft": "rgb(var(--primary-rgb) / 0.1)", // Auto soft based on primary
+                        "primary-soft": ({ opacityValue }) => `rgb(var(--primary-rgb) / 0.1)`,
 
                         // Backgrounds
                         "background-light": "#F6F8FB",
@@ -40,30 +40,26 @@
                         "text-muted": "#475569",
                         "text-muted-dark": "#94A3B8",
                         "text-subtle": "#64748B",
-                        "text-light": "#FFFFFF", // Fixed white
+                        "text-light": "#FFFFFF",
 
-                        // Legacy / Helper mappings
-                        "neutral-dark": "#0F172A", 
-                        "neutral-muted": "#475569",
-
-                        // Status Colors (Matching request)
+                        // Status Colors
                         "success": "#16A34A",
                         "warning": "#F59E0B",
                         "danger": "#EF4444",
                         "info": "#0EA5E9",
 
-                        // Override Grays to match Border/Surface specs
+                        // Override Grays
                         gray: {
                             50: '#F8FAFC',
-                            100: '#F1F5F9', // Surface 2 Light
-                            200: '#E2E8F0', // Border Light
+                            100: '#F1F5F9',
+                            200: '#E2E8F0',
                             300: '#CBD5E1',
-                            400: '#94A3B8', // Text Muted Dark
-                            500: '#64748B', // Text Subtle
-                            600: '#475569', // Text Muted Light
-                            700: '#243044', // Border Dark
-                            800: '#111C2E', // Surface Dark
-                            900: '#0F172A', // Text Main Light
+                            400: '#94A3B8',
+                            500: '#64748B',
+                            600: '#475569',
+                            700: '#243044',
+                            800: '#111C2E',
+                            900: '#0F172A',
                         }
                     },
                     fontFamily: {
@@ -92,7 +88,7 @@
         .dark ::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.1); }
         .form-input-transition { transition: border-color 0.2s ease, box-shadow 0.2s ease; }
 
-        /* CSS Variables for Primary Color Switching with Opacity Support */
+        /* CSS Variables for Primary Color Switching */
         :root {
             /* Light Mode: #2563EB -> 37 99 235 */
             --primary-rgb: 37 99 235;
@@ -104,13 +100,14 @@
             --primary-hover: #60A5FA;
         }
     </style>
-<script type="importmap">
+    <script type="importmap">
 {
   "imports": {
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react-router-dom": "https://esm.sh/react-router-dom@^7.11.0",
+    "react": "https://esm.sh/react@18.2.0",
+    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+    "react-router-dom": "https://esm.sh/react-router-dom@6.22.3",
     "react/": "https://esm.sh/react@^19.2.3/",
-    "react": "https://esm.sh/react@^19.2.3"
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/"
   }
 }
 </script>
