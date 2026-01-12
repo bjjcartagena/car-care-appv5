@@ -19,10 +19,10 @@
             theme: {
                 extend: {
                     colors: {
-                        // Semantic Colors with safe function syntax for browser runtime
-                        primary: ({ opacityValue }) => `rgb(var(--primary-rgb) / ${opacityValue ?? 1})`,
+                        // Semantic Colors using standard Tailwind CSS variable syntax
+                        primary: "rgb(var(--primary-rgb) / <alpha-value>)",
                         "primary-hover": "var(--primary-hover)",
-                        "primary-soft": ({ opacityValue }) => `rgb(var(--primary-rgb) / 0.1)`,
+                        "primary-soft": "rgb(var(--primary-rgb) / 0.1)",
 
                         // Backgrounds
                         "background-light": "#F6F8FB",
@@ -104,10 +104,11 @@
 {
   "imports": {
     "react": "https://esm.sh/react@18.2.0",
+    "react-dom": "https://esm.sh/react-dom@18.2.0",
     "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-    "react-router-dom": "https://esm.sh/react-router-dom@6.22.3",
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/"
+    "react-router-dom": "https://esm.sh/react-router-dom@6.22.3?deps=react@18.2.0,react-dom@18.2.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/"
   }
 }
 </script>
