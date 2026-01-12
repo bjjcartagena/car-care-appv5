@@ -6,16 +6,61 @@ import DarkModeToggle from '../components/DarkModeToggle';
 const getTaskContent = (taskTitle: string) => {
     const titleLower = taskTitle?.toLowerCase() || '';
 
-    if (titleLower.includes('filtro de aceite')) {
+    // --- FILTROS (Generic) ---
+    if (titleLower.includes('filtros')) {
         return {
-             description: "El filtro retiene las partículas metálicas y suciedad del aceite. Cambiarlo junto con el aceite es obligatorio para no contaminar el lubricante nuevo nada más echarlo.",
-            image: "https://images.unsplash.com/photo-1626078726591-b384666f29cb?q=80&w=1000&auto=format&fit=crop",
-            interval: "Cada 6.000 km",
-            intervalSub: "Sustituir siempre",
-            cost: "10€ - 20€",
+            description: "Mantener los filtros limpios es vital. El de aceite protege el motor, el de aire optimiza la combustión y el de habitáculo cuida tu salud. Indica qué filtro has cambiado en el registro.",
+            image: "https://images.unsplash.com/photo-1627483262268-9c96d8a36896?q=80&w=1000&auto=format&fit=crop",
+            interval: "Variable",
+            intervalSub: "Según el tipo",
+            cost: "10€ - 50€",
+            difficulty: "Baja/Media"
+        };
+    } 
+    // --- ACEITE (Standalone) ---
+    else if (titleLower.includes('aceite') && !titleLower.includes('filtro') && !titleLower.includes('cambios') && !titleLower.includes('cardán')) {
+        return {
+            description: "El aceite es la sangre de tu motor. Cambiarlo a tiempo lubrica las partes móviles, reduce el calor y elimina impurezas. Un aceite viejo pierde propiedades, aumentando el desgaste y el riesgo de averías graves.",
+            image: "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?q=80&w=1000&auto=format&fit=crop",
+            interval: "Cada 1 Año",
+            intervalSub: "o 15.000 km",
+            cost: "40€ - 90€",
             difficulty: "Media"
         };
-    } else if (titleLower.includes('caja cambios') || titleLower.includes('caja de cambios')) {
+    }
+    // --- NEUMÁTICOS (General / Moto Split) ---
+    else if (titleLower.includes('neumático delantero')) {
+        return {
+            description: "El neumático delantero es crítico para la dirección y la frenada (soporta el 70% de la fuerza al frenar). Vigila que no tenga escalones en el desgaste ni grietas. Presión incorrecta = Caída probable.",
+            image: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?q=80&w=1000&auto=format&fit=crop", // Moto wheel close up
+            interval: "15.000 km",
+            intervalSub: "o cada 4-5 años",
+            cost: "100€ - 200€",
+            difficulty: "Alta"
+        };
+    }
+    else if (titleLower.includes('neumático trasero')) {
+        return {
+            description: "El neumático trasero transmite la potencia al suelo. Se desgasta más rápido por la tracción, especialmente en el centro (se 'cuadra'). Un neumático cuadrado hace la moto torpe en curvas.",
+            image: "https://images.unsplash.com/photo-1599407338006-0b82260f781a?q=80&w=1000&auto=format&fit=crop",
+            interval: "8.000 - 12.000 km",
+            intervalSub: "o cada 4-5 años",
+            cost: "120€ - 250€",
+            difficulty: "Alta"
+        };
+    }
+    else if (titleLower.includes('neumáticos') || titleLower.includes('ruedas')) {
+        return {
+            description: "Los neumáticos son el único punto de contacto con la carretera. Una presión incorrecta aumenta el consumo y reduce la seguridad. El dibujo debe tener al menos 1.6mm para evitar aquaplaning.",
+            image: "https://images.unsplash.com/photo-1578844251758-2f71da64522f?q=80&w=1000&auto=format&fit=crop",
+            interval: "Semanal (Presión)",
+            intervalSub: "Cambio: 40.000 km",
+            cost: "80€ - 200€/ud",
+            difficulty: "Alta"
+        };
+    }
+    // --- OTHER ---
+    else if (titleLower.includes('caja cambios') || titleLower.includes('caja de cambios')) {
          return {
             description: "El aceite de la caja de cambios asegura que las marchas entren suaves y protege los engranajes del desgaste. En motos con embrague bañado en aceite, suele ser el mismo que el del motor, pero en otros modelos es independiente.",
             image: "https://images.unsplash.com/photo-1598555849883-9e90c8b3684a?q=80&w=1000&auto=format&fit=crop",
@@ -24,15 +69,6 @@ const getTaskContent = (taskTitle: string) => {
             cost: "15€ - 40€",
             difficulty: "Media"
         };
-    } else if (titleLower.includes('filtro de aire')) {
-         return {
-            description: "Un filtro de aire sucio reduce la potencia del motor y aumenta el consumo. Limpiarlo o cambiarlo permite que el motor 'respire' correctamente, evitando que entren impurezas al cilindro.",
-            image: "https://images.unsplash.com/photo-1627483262268-9c96d8a36896?q=80&w=1000&auto=format&fit=crop",
-            interval: "Cada 6.000 km",
-            intervalSub: "Limpiar o sustituir",
-            cost: "15€ - 50€",
-            difficulty: "Baja"
-        };
     } else if (titleLower.includes('embrague')) {
         return {
             description: "Un embrague mal ajustado puede patinar (perdiendo potencia) o no desacoplar bien (dificultando el cambio y encontrando el punto muerto). Ajustar la tensión del cable y la holgura de la maneta es vital.",
@@ -40,24 +76,6 @@ const getTaskContent = (taskTitle: string) => {
             interval: "Cada 6.000 km",
             intervalSub: "Revisar holgura",
             cost: "0€ - 30€",
-            difficulty: "Baja"
-        };
-    } else if (titleLower.includes('aceite') && !titleLower.includes('cardán')) {
-        return {
-            description: "El aceite es la sangre de tu motor. Cambiarlo a tiempo lubrica las partes móviles, reduce el calor y elimina impurezas. Un aceite viejo pierde propiedades, aumentando el desgaste y el riesgo de averías graves.",
-            image: "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?q=80&w=1000&auto=format&fit=crop",
-            interval: "Cada 1 Año",
-            intervalSub: "o 15.000 km",
-            cost: "60€ - 120€",
-            difficulty: "Media"
-        };
-    } else if (titleLower.includes('neumáticos') || titleLower.includes('ruedas')) {
-        return {
-            description: "Los neumáticos son el único punto de contacto con la carretera. Una presión incorrecta aumenta el consumo y reduce la seguridad. El dibujo debe tener al menos 1.6mm para evitar aquaplaning.",
-            image: "https://images.unsplash.com/photo-1578844251758-2f71da64522f?q=80&w=1000&auto=format&fit=crop",
-            interval: "Semanal",
-            intervalSub: "Revisar presión",
-            cost: "0€",
             difficulty: "Baja"
         };
     } else if (titleLower.includes('distribución')) {
@@ -109,11 +127,11 @@ const getTaskContent = (taskTitle: string) => {
     
     // Default (Brake Fluid / Generic)
     return {
-        description: "El líquido viejo puede absorber humedad del aire, reduciendo su punto de ebullición y provocando fallos en frenadas bruscas. Cambiarlo asegura que tu coche responda al instante, protegiéndote a ti y a tus pasajeros.",
+        description: "El mantenimiento preventivo ahorra dinero a largo plazo. Realizar esta tarea asegura que tu vehículo funcione correctamente y evita averías mayores.",
         image: "https://lh3.googleusercontent.com/aida-public/AB6AXuBQX6fPG-gY61lh2q_jUOQkmgP63pbyxCuUChSAbDb9Ueehinw9DTMmc0IAuzYu-CxU6UeNdhJ9K248Z9VKg1EpRjjIjFPShibcB8vZXVoV6zihxvmzcStw8irdBZ8FPLpyNG9LqdIR0PKMcVCE3Z50ltGdZNBegbykzYKooHbRXbKhSvWsm9CIkNXZOvoa4L3UbG4Gr3kTnf_oujACxuWslzHeYi5-ssvfxqrsazn7f61zERJcp3IG76hjCpWgD0oUHwfDMaD0PkXG",
-        interval: "Cada 2 Años",
-        intervalSub: "o 40.000 km",
-        cost: "90€ - 120€",
+        interval: "Consultar Manual",
+        intervalSub: "Revisión periódica",
+        cost: "Variable",
         difficulty: "Moderada"
     };
 };
@@ -130,13 +148,15 @@ const TaskDetail: React.FC = () => {
 
     const content = getTaskContent(task.title);
     
-    // Check if it's AdBlue to change labels
+    // Logic for Filters
+    const isFilterTask = task.title.toLowerCase().includes('filtros');
     const isAdBlue = task.title.toLowerCase().includes('adblue');
     
     // State for History Form
     const [historyData, setHistoryData] = useState({
         date: new Date().toISOString().split('T')[0], // Default to today
-        km: vehicle.mileage || ''
+        km: vehicle.mileage || '',
+        filterType: 'Aceite' // Default filter type
     });
 
     // State for Last Recorded History
@@ -166,7 +186,7 @@ const TaskDetail: React.FC = () => {
         const storedHistory = localStorage.getItem('autominder_history');
         const history = storedHistory ? JSON.parse(storedHistory) : {};
 
-        // Structure: { [vehicleId]: { [taskId]: { date, km } } }
+        // Structure: { [vehicleId]: { [taskId]: { date, km, subType } } }
         if (!history[vehicle.id]) {
             history[vehicle.id] = {};
         }
@@ -174,13 +194,14 @@ const TaskDetail: React.FC = () => {
         history[vehicle.id][task.id] = {
             date: historyData.date,
             km: historyData.km,
-            type: isAdBlue ? 'refill' : 'service'
+            type: isAdBlue ? 'refill' : 'service',
+            subType: isFilterTask ? historyData.filterType : undefined
         };
 
         // Save back
         localStorage.setItem('autominder_history', JSON.stringify(history));
 
-        // Update vehicle mileage if new is higher (ensures consistency)
+        // Update vehicle mileage if new is higher
         const newKm = parseInt(historyData.km);
         const currentKm = parseInt(vehicle.mileage);
         if (!isNaN(newKm) && newKm > currentKm) {
@@ -192,7 +213,7 @@ const TaskDetail: React.FC = () => {
              }
         }
 
-        // Navigate back to dashboard to see changes
+        // Navigate back to dashboard
         navigate('/dashboard');
     };
 
@@ -203,8 +224,6 @@ const TaskDetail: React.FC = () => {
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 setLocationStatus('found');
-                // We have coords (position.coords.latitude, position.coords.longitude)
-                // In a real app, we'd query an API. Here we assume success and update UI text.
             },
             () => {
                 setLocationStatus('idle'); // Error or denied
@@ -223,7 +242,6 @@ const TaskDetail: React.FC = () => {
             dateAdded: new Date().toISOString()
         };
 
-        // Get existing reminders
         const storedReminders = localStorage.getItem('autominder_reminders');
         const reminders = storedReminders ? JSON.parse(storedReminders) : [];
         
@@ -234,12 +252,10 @@ const TaskDetail: React.FC = () => {
         setTimeout(() => setShowToast(false), 3000);
     };
 
-    // Auto-locate on mount if permission granted previously (optional, but good UX)
     useEffect(() => {
-        // Simple check just to set the "Find nearby" text correctly if permission is already there
         navigator.permissions?.query({ name: 'geolocation' }).then(result => {
             if (result.state === 'granted') {
-               // handleLocate(); // Optional: auto locate
+               // handleLocate(); 
             }
         });
     }, []);
@@ -318,7 +334,7 @@ const TaskDetail: React.FC = () => {
                                              </div>
                                              <div>
                                                  <p className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                                     {isAdBlue ? "Último rellenado" : "Último cambio"}
+                                                     {isAdBlue ? "Último rellenado" : lastRecord.subType ? `Cambio: ${lastRecord.subType}` : "Último cambio"}
                                                  </p>
                                                  <p className="font-bold text-gray-900 dark:text-white">
                                                      {new Date(lastRecord.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
@@ -345,6 +361,29 @@ const TaskDetail: React.FC = () => {
                                             className="w-full h-12 px-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all font-medium outline-none"
                                         />
                                     </div>
+
+                                    {/* Show Filter Type Selector ONLY if it's the Filters task */}
+                                    {isFilterTask && (
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                                Tipo de Filtro
+                                            </label>
+                                            <div className="relative">
+                                                <select 
+                                                    value={historyData.filterType}
+                                                    onChange={(e) => setHistoryData({...historyData, filterType: e.target.value})}
+                                                    className="w-full h-12 px-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all font-medium outline-none appearance-none cursor-pointer"
+                                                >
+                                                    <option value="Aceite">Filtro de Aceite</option>
+                                                    <option value="Aire">Filtro de Aire</option>
+                                                    <option value="Combustible">Filtro de Combustible</option>
+                                                    <option value="Habitáculo">Filtro de Habitáculo</option>
+                                                </select>
+                                                <span className="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-gray-500 pointer-events-none">expand_more</span>
+                                            </div>
+                                        </div>
+                                    )}
+
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">Kilometraje</label>
                                         <div className="relative">
@@ -358,13 +397,16 @@ const TaskDetail: React.FC = () => {
                                             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400">KM</span>
                                         </div>
                                     </div>
-                                    <button 
-                                        onClick={handleSaveHistory}
-                                        className="h-12 w-full bg-primary hover:bg-primary-hover text-[#052912] font-bold rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all active:scale-95 flex items-center justify-center gap-2"
-                                    >
-                                        <span className="material-symbols-outlined">save</span>
-                                        Registrar
-                                    </button>
+                                    
+                                    <div className="md:col-span-3">
+                                        <button 
+                                            onClick={handleSaveHistory}
+                                            className="h-12 w-full bg-primary hover:bg-primary-hover text-[#052912] font-bold rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all active:scale-95 flex items-center justify-center gap-2"
+                                        >
+                                            <span className="material-symbols-outlined">save</span>
+                                            {isFilterTask ? "Registrar Filtro" : "Registrar"}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </section>
