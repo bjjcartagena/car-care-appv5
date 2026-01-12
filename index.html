@@ -19,47 +19,48 @@
             theme: {
                 extend: {
                     colors: {
-                        // Semantic Colors using standard Tailwind CSS variable syntax
+                        // Primary using CSS variables for opacity support
                         primary: "rgb(var(--primary-rgb) / <alpha-value>)",
                         "primary-hover": "var(--primary-hover)",
-                        "primary-soft": "rgb(var(--primary-rgb) / 0.1)",
+                        "primary-soft": "var(--primary-soft)",
 
-                        // Backgrounds
-                        "background-light": "#F6F8FB",
-                        "background-dark": "#0B1220",
+                        // Backgrounds (From Palette)
+                        "background-light": "#F7F8FA",
+                        "background-dark": "#0A0D14", // Grafito
                         
                         // Surfaces / Cards
-                        "card-light": "#FFFFFF",
-                        "card-dark": "#111C2E",
-                        "surface-light": "#F1F5F9",
-                        "surface-dark": "#0F1A2B",
+                        "card-light": "#FFFFFF",      // Surface
+                        "card-dark": "#111827",       // Surface Dark
+                        "surface-light": "#F2F4F7",   // Surface 2
+                        "surface-dark": "#0F172A",    // Surface 2 Dark
 
                         // Text
-                        "text-main": "#0F172A",
-                        "text-main-dark": "#E5E7EB",
-                        "text-muted": "#475569",
-                        "text-muted-dark": "#94A3B8",
-                        "text-subtle": "#64748B",
+                        "text-main": "#111827",
+                        "text-main-dark": "#F3F4F6",
+                        "text-muted": "#4B5563",
+                        "text-muted-dark": "#9CA3AF",
+                        "text-subtle": "#6B7280",
                         "text-light": "#FFFFFF",
 
-                        // Status Colors
-                        "success": "#16A34A",
-                        "warning": "#F59E0B",
-                        "danger": "#EF4444",
-                        "info": "#0EA5E9",
+                        // Semantic Status Colors (Light Mode defaults, manual dark mode usage in components)
+                        "success": "#12B76A",
+                        "warning": "#F79009",
+                        "danger": "#F04438",
+                        "info": "#2E90FA",
 
-                        // Override Grays
+                        // Override Grays to match Border/Surface palette
                         gray: {
-                            50: '#F8FAFC',
-                            100: '#F1F5F9',
-                            200: '#E2E8F0',
-                            300: '#CBD5E1',
-                            400: '#94A3B8',
-                            500: '#64748B',
-                            600: '#475569',
-                            700: '#243044',
-                            800: '#111C2E',
-                            900: '#0F172A',
+                            50: '#F9FAFB',
+                            100: '#F2F4F7', // Surface 2 Light
+                            200: '#E6E8EC', // Border Light
+                            300: '#D1D5DB',
+                            400: '#9CA3AF', // Text Muted Dark
+                            500: '#6B7280', // Text Subtle
+                            600: '#4B5563', // Text Muted Light
+                            700: '#283244', // Border Dark
+                            800: '#111827', // Surface Dark
+                            900: '#0F172A', // Surface 2 Dark
+                            950: '#0A0D14', // Background Dark
                         }
                     },
                     fontFamily: {
@@ -74,7 +75,7 @@
                     },
                     boxShadow: {
                         "soft": "0 4px 20px -2px rgba(0, 0, 0, 0.05)",
-                        "glow": "0 0 15px rgba(37, 99, 235, 0.3)"
+                        "glow": "0 0 15px rgba(31, 111, 235, 0.3)"
                     }
                 },
             },
@@ -88,16 +89,18 @@
         .dark ::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.1); }
         .form-input-transition { transition: border-color 0.2s ease, box-shadow 0.2s ease; }
 
-        /* CSS Variables for Primary Color Switching */
+        /* CSS Variables for Dynamic Colors */
         :root {
-            /* Light Mode: #2563EB -> 37 99 235 */
-            --primary-rgb: 37 99 235;
-            --primary-hover: #1D4ED8;
+            /* Light Mode Primary: #1F6FEB -> 31 111 235 */
+            --primary-rgb: 31 111 235;
+            --primary-hover: #1158C7;
+            --primary-soft: #EAF2FF;
         }
         .dark {
-            /* Dark Mode: #3B82F6 -> 59 130 246 */
-            --primary-rgb: 59 130 246;
-            --primary-hover: #60A5FA;
+            /* Dark Mode Primary: #4C8DFF -> 76 141 255 */
+            --primary-rgb: 76 141 255;
+            --primary-hover: #79A8FF;
+            --primary-soft: #102A55;
         }
     </style>
     <script type="importmap">
