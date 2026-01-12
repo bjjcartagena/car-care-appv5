@@ -4,15 +4,44 @@ import DarkModeToggle from '../components/DarkModeToggle';
 
 // --- Helper Components ---
 
-const NotificationBanner: React.FC<{ messages: string[], onClose: () => void }> = ({ messages, onClose }) => {
-    if (messages.length === 0) return null;
+type NotificationType = 'info' | 'warning' | 'danger';
+
+interface NotificationItem {
+    message: string;
+    type: NotificationType;
+}
+
+const NotificationBanner: React.FC<{ notifications: NotificationItem[], onClose: (index: number) => void }> = ({ notifications, onClose }) => {
+    if (notifications.length === 0) return null;
+
+    const getStyles = (type: NotificationType) => {
+        switch (type) {
+            case 'danger':
+                return "bg-red-100 dark:bg-red-900/40 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200";
+            case 'warning':
+                return "bg-orange-100 dark:bg-orange-900/40 border-orange-200 dark:border-orange-800 text-orange-800 dark:text-orange-200";
+            default: // info
+                return "bg-primary/10 border-primary/20 text-text-main dark:text-text-main-dark";
+        }
+    };
+
+    const getIcon = (type: NotificationType) => {
+        switch (type) {
+            case 'danger': return "error";
+            case 'warning': return "warning";
+            default: return "notifications_active";
+        }
+    };
+
     return (
         <div className="mb-6 flex flex-col gap-2">
-            {messages.map((msg, idx) => (
-                <div key={idx} className="bg-primary/10 border border-primary/20 p-4 rounded-xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
-                    <span className="material-symbols-outlined text-primary">notifications_active</span>
-                    <p className="text-sm font-medium text-text-main dark:text-text-main-dark flex-1">{msg}</p>
-                    <button onClick={onClose} className="text-text-muted hover:text-text-main">
+            {notifications.map((note, idx) => (
+                <div key={idx} className={`${getStyles(note.type)} border p-4 rounded-xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2 shadow-sm`}>
+                    <span className={`material-symbols-outlined ${note.type === 'danger' ? 'animate-pulse' : ''}`}>
+                        {getIcon(note.type)}
+                    </span>
+                    <p className="text-sm font-bold flex-1">{note.message}</p>
+                    <button onClick={() => onClose(idx)} className="opacity-70 hover:opacity-100 transition-opacity">
                         <span className="material-symbols-outlined text-lg">close</span>
                     </button>
                 </div>
@@ -173,7 +202,7 @@ const Dashboard: React.FC = () => {
     const [insuranceDate, setInsuranceDate] = useState<string>('');
     const [daysToInsurance, setDaysToInsurance] = useState<number | null>(null);
     
-    const [notifications, setNotifications] = useState<string[]>([]);
+    const [notifications, setNotifications] = useState<NotificationItem[]>([]);
     const [showKmModal, setShowKmModal] = useState(false);
     
     const [showVehicleMenu, setShowVehicleMenu] = useState(false);
@@ -200,7 +229,7 @@ const Dashboard: React.FC = () => {
                 setTasks(getMaintenanceTasks(activeVehicle.type, activeVehicle.make, parseInt(activeVehicle.mileage), history, activeVehicle.id));
                 
                 // --- Notifications Checks ---
-                const newNotes: string[] = [];
+                const newNotes: NotificationItem[] = [];
 
                 // 1. Weekly KM Update Logic
                 const lastKmCheck = localStorage.getItem(`autominder_last_km_check_${activeVehicle.id}`);
@@ -212,21 +241,29 @@ const Dashboard: React.FC = () => {
                     const daysSinceCheck = (now - parseInt(lastKmCheck)) / (1000 * 60 * 60 * 24);
                     if (daysSinceCheck >= 7) {
                         setShowKmModal(true);
-                        newNotes.push(`📅 Han pasado ${Math.floor(daysSinceCheck)} días. Por favor, actualiza los KM de tu ${activeVehicle.make}.`);
+                        newNotes.push({
+                            message: `📅 Han pasado ${Math.floor(daysSinceCheck)} días. Por favor, actualiza los KM de tu ${activeVehicle.make}.`,
+                            type: 'info'
+                        });
                     }
                 }
 
                 // 2. ITV Checks (30, 14, 7 days)
-                // NOW READ FROM VEHICLE OBJECT, NOT GLOBAL
                 const storedItv = activeVehicle.itvDate;
                 if (storedItv) {
                     setItvDate(storedItv);
                     const days = getDaysDiff(storedItv, true); // True for end of month logic
                     setDaysToItv(days);
                     if ([30, 14, 7].includes(days) && days > 0) {
-                        newNotes.push(`🚗 Tu ITV caduca en ${days} días.`);
+                        newNotes.push({
+                            message: `🚗 Tu ITV caduca en ${days} días.`,
+                            type: 'warning'
+                        });
                     } else if (days <= 0) {
-                        newNotes.push(`⚠️ Tu ITV ha caducado.`);
+                        newNotes.push({
+                            message: `⚠️ URGENTE: Tu ITV ha caducado.`,
+                            type: 'danger'
+                        });
                     }
                 } else {
                     setItvDate('');
@@ -234,16 +271,21 @@ const Dashboard: React.FC = () => {
                 }
 
                 // 3. Insurance Checks (30, 7 days)
-                // NOW READ FROM VEHICLE OBJECT, NOT GLOBAL
                 const storedInsurance = activeVehicle.insuranceDate;
                 if (storedInsurance) {
                     setInsuranceDate(storedInsurance);
                     const days = getDaysDiff(storedInsurance, false);
                     setDaysToInsurance(days);
                     if ([30, 7].includes(days) && days > 0) {
-                        newNotes.push(`📄 Tu Seguro vence en ${days} días.`);
+                        newNotes.push({
+                            message: `📄 Tu Seguro vence en ${days} días.`,
+                            type: 'warning'
+                        });
                     } else if (days <= 0) {
-                        newNotes.push(`⚠️ Tu Seguro ha vencido.`);
+                        newNotes.push({
+                            message: `⚠️ URGENTE: Tu Seguro ha vencido.`,
+                            type: 'danger'
+                        });
                     }
                 } else {
                     setInsuranceDate('');
@@ -286,7 +328,7 @@ const Dashboard: React.FC = () => {
         setGarage(updatedGarage);
         setVehicle({ ...vehicle, mileage: newKm });
         setShowKmModal(false);
-        setNotifications(prev => prev.filter(n => !n.includes('días. Por favor, actualiza los KM')));
+        setNotifications(prev => prev.filter(n => !n.message.includes('días. Por favor, actualiza los KM')));
         
         // Refresh Tasks with new mileage
         const history = JSON.parse(localStorage.getItem('autominder_history') || '{}');
@@ -335,6 +377,10 @@ const Dashboard: React.FC = () => {
         localStorage.setItem('autominder_active_id', v.id);
         window.location.reload(); 
     };
+    
+    const removeNotification = (index: number) => {
+        setNotifications(prev => prev.filter((_, i) => i !== index));
+    };
 
     const iconMap: any = { 'car': 'directions_car', 'moto': 'two_wheeler' };
     
@@ -359,27 +405,28 @@ const Dashboard: React.FC = () => {
         if (days === null) return `${base} bg-card-light dark:bg-card-dark border-gray-200 dark:border-gray-700`;
         
         if (days <= 0) {
-            // Rojo (Vencido/Hoy - 0 días o menos)
-            return `${base} bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-900/50`;
+            // Rojo Intenso (Vencido)
+            return `${base} bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-800 ring-1 ring-red-200 dark:ring-red-900`;
         } else if (days <= 30) {
-            // Amarillento (30 días o menos, pero más de 0)
+            // Amarillento (Próximo)
             return `${base} bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-900/50`;
         } else {
-             // Verdoso (> 30 días)
+             // Verdoso (OK)
              return `${base} bg-emerald-50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-900/50`;
         }
     };
 
     const getIconStyles = (days: number | null) => {
-        const base = "h-10 w-10 rounded-lg flex items-center justify-center transition-colors duration-300";
-         if (days === null) return `${base} bg-primary/20 text-primary`;
+        const base = "rounded-xl flex items-center justify-center transition-all duration-300";
+         if (days === null) return `${base} h-10 w-10 bg-primary/20 text-primary`;
 
         if (days <= 0) {
-            return `${base} bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400`;
+            // Vencido: Icono Grande, Pulsante, Sombra Roja
+            return `${base} h-14 w-14 bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400 shadow-lg shadow-red-500/20 animate-pulse`;
         } else if (days <= 30) {
-             return `${base} bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400`;
+             return `${base} h-10 w-10 bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400`;
         } else {
-             return `${base} bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400`;
+             return `${base} h-10 w-10 bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400`;
         }
     };
 
@@ -406,7 +453,7 @@ const Dashboard: React.FC = () => {
             {/* Main Content */}
             <main className="flex-1 w-full max-w-[960px] mx-auto px-4 md:px-6 py-6 pb-24">
                 
-                <NotificationBanner messages={notifications} onClose={() => setNotifications([])} />
+                <NotificationBanner notifications={notifications} onClose={removeNotification} />
 
                 {/* Greeting & Vehicle Selector */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4 relative z-20">
@@ -523,7 +570,7 @@ const Dashboard: React.FC = () => {
                                     <p className="text-xs text-text-muted dark:text-text-muted-dark">Inspección Técnica</p>
                                 </div>
                                 <div className={getIconStyles(daysToItv)}>
-                                    <span className="material-symbols-outlined">event_available</span>
+                                    <span className={`material-symbols-outlined ${daysToItv !== null && daysToItv <= 0 ? 'text-3xl' : ''}`}>event_available</span>
                                 </div>
                             </div>
                             <div className="mb-4">
@@ -567,7 +614,7 @@ const Dashboard: React.FC = () => {
                                     <p className="text-xs text-text-muted dark:text-text-muted-dark">Fecha de renovación</p>
                                 </div>
                                 <div className={getIconStyles(daysToInsurance)}>
-                                    <span className="material-symbols-outlined">health_and_safety</span>
+                                    <span className={`material-symbols-outlined ${daysToInsurance !== null && daysToInsurance <= 0 ? 'text-3xl' : ''}`}>health_and_safety</span>
                                 </div>
                             </div>
                             
