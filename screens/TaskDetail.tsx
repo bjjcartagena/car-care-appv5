@@ -161,6 +161,7 @@ const TaskDetail: React.FC = () => {
 
     // State for Last Recorded History
     const [lastRecord, setLastRecord] = useState<any>(null);
+    const [historyList, setHistoryList] = useState<any[]>([]);
 
     // Toast Notification State
     const [showToast, setShowToast] = useState(false);
@@ -174,7 +175,18 @@ const TaskDetail: React.FC = () => {
         if (storedHistory) {
             const history = JSON.parse(storedHistory);
             if (history[vehicle.id] && history[vehicle.id][task.id]) {
-                setLastRecord(history[vehicle.id][task.id]);
+                const entry = history[vehicle.id][task.id];
+                
+                if (Array.isArray(entry)) {
+                    // It's a list, sort by latest
+                    const sorted = [...entry].sort((a: any, b: any) => parseInt(b.km) - parseInt(a.km));
+                    setLastRecord(sorted[0]);
+                    setHistoryList(sorted);
+                } else {
+                    // Legacy object format
+                    setLastRecord(entry);
+                    setHistoryList([entry]);
+                }
             }
         }
     }, [vehicle.id, task.id]);
@@ -186,17 +198,30 @@ const TaskDetail: React.FC = () => {
         const storedHistory = localStorage.getItem('autominder_history');
         const history = storedHistory ? JSON.parse(storedHistory) : {};
 
-        // Structure: { [vehicleId]: { [taskId]: { date, km, subType } } }
+        // Structure: { [vehicleId]: { [taskId]: [ { date, km, subType } ] } }
         if (!history[vehicle.id]) {
             history[vehicle.id] = {};
         }
 
-        history[vehicle.id][task.id] = {
+        const newEntry = {
             date: historyData.date,
             km: historyData.km,
             type: isAdBlue ? 'refill' : 'service',
             subType: isFilterTask ? historyData.filterType : undefined
         };
+
+        const currentTaskHistory = history[vehicle.id][task.id];
+
+        if (!currentTaskHistory) {
+            // New Array
+            history[vehicle.id][task.id] = [newEntry];
+        } else if (Array.isArray(currentTaskHistory)) {
+            // Push to existing array
+            history[vehicle.id][task.id].push(newEntry);
+        } else {
+            // Convert old Object to Array and push new
+            history[vehicle.id][task.id] = [currentTaskHistory, newEntry];
+        }
 
         // Save back
         localStorage.setItem('autominder_history', JSON.stringify(history));
@@ -410,6 +435,42 @@ const TaskDetail: React.FC = () => {
                                 </div>
                             </div>
                         </section>
+
+                        {/* Full History List Section */}
+                        {historyList.length > 0 && (
+                            <section className="bg-white dark:bg-card-dark rounded-2xl border border-gray-100 dark:border-gray-800 shadow-md p-6">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <span className="material-symbols-outlined text-gray-400 dark:text-gray-500">list_alt</span>
+                                    <h3 className="font-bold text-lg text-gray-900 dark:text-white">Historial de Cambios</h3>
+                                </div>
+                                <div className="flex flex-col gap-3">
+                                    {historyList.map((record, i) => (
+                                        <div key={i} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-gray-700/50 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                                                    <span className="material-symbols-outlined text-lg">
+                                                        {record.subType ? 'filter_alt' : 'history'}
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-sm text-gray-900 dark:text-white">
+                                                        {record.subType ? `Cambio de Filtro: ${record.subType}` : 'Mantenimiento registrado'}
+                                                    </p>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                        {new Date(record.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="mt-2 sm:mt-0 pl-14 sm:pl-0">
+                                                <span className="font-mono text-sm font-bold text-gray-700 dark:text-gray-300 bg-white dark:bg-black/30 px-2 py-1 rounded border border-gray-200 dark:border-gray-700">
+                                                    {parseInt(record.km).toLocaleString('es-ES')} km
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
                         
                         {/* Task Details Grid */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
