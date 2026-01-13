@@ -78,13 +78,13 @@ const VehicleProfileSetup: React.FC = () => {
                     <div className="px-8 pt-8 pb-4">
                         <div className="flex justify-between items-end mb-3">
                             <div className="flex flex-col gap-1">
-                                <span className="text-xs font-bold uppercase tracking-wider text-[#608a6e] dark:text-[#6e9c80]">Paso 2 de 4</span>
+                                <span className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Paso 2 de 4</span>
                                 <h2 className="text-sm font-semibold text-[#111813] dark:text-gray-200">Datos del Vehículo</h2>
                             </div>
                             <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">50% Completado</span>
                         </div>
-                        <div className="h-2 w-full bg-[#eef4f0] dark:bg-[#25382e] rounded-full overflow-hidden">
-                            <div className="h-full bg-primary w-1/2 rounded-full shadow-[0_0_10px_rgba(13,242,89,0.5)]"></div>
+                        <div className="h-2 w-full bg-gray-100 dark:bg-[#25382e] rounded-full overflow-hidden">
+                            <div className="h-full bg-primary w-1/2 rounded-full shadow-glow"></div>
                         </div>
                     </div>
                     
@@ -95,7 +95,7 @@ const VehicleProfileSetup: React.FC = () => {
                             <h1 className="text-[32px] font-bold leading-tight text-[#111813] dark:text-white mb-2 tracking-tight">
                                 Vamos a configurar tu {isMoto ? 'moto' : 'coche'}.
                             </h1>
-                            <p className="text-[#608a6e] dark:text-[#8bbaa0] text-base leading-relaxed">
+                            <p className="text-gray-500 dark:text-gray-400 text-base leading-relaxed">
                                 Introduce los detalles para cargar el plan de mantenimiento recomendado según el fabricante.
                             </p>
                         </div>
@@ -111,7 +111,7 @@ const VehicleProfileSetup: React.FC = () => {
                                     <select 
                                         value={make}
                                         onChange={(e) => setMake(e.target.value)}
-                                        className="form-input-transition block w-full h-14 rounded-xl border border-[#dbe6df] dark:border-[#354f40] bg-white dark:bg-[#15231b] px-4 text-base text-[#111813] dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none appearance-none bg-none cursor-pointer placeholder:text-[#608a6e]" 
+                                        className="form-input-transition block w-full h-14 rounded-xl border border-gray-200 dark:border-[#354f40] bg-white dark:bg-[#15231b] px-4 text-base text-[#111813] dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none appearance-none bg-none cursor-pointer placeholder:text-gray-400" 
                                         id="vehicle-make"
                                     >
                                         <option disabled value="">Selecciona una marca</option>
@@ -119,7 +119,7 @@ const VehicleProfileSetup: React.FC = () => {
                                             <option key={brand} value={brand}>{brand}</option>
                                         ))}
                                     </select>
-                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[#608a6e] dark:text-[#8bbaa0] group-hover:text-primary transition-colors">
+                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400 group-hover:text-primary transition-colors">
                                         <span className="material-symbols-outlined">expand_more</span>
                                     </div>
                                 </div>
@@ -134,13 +134,13 @@ const VehicleProfileSetup: React.FC = () => {
                                     <input 
                                         value={model}
                                         onChange={(e) => setModel(e.target.value)}
-                                        className="form-input-transition block w-full h-14 rounded-xl border border-[#dbe6df] dark:border-[#354f40] bg-white dark:bg-[#15231b] px-4 text-base text-[#111813] dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none placeholder:text-[#9ab8a4] dark:placeholder:text-[#4a6356]" 
+                                        className="form-input-transition block w-full h-14 rounded-xl border border-gray-200 dark:border-[#354f40] bg-white dark:bg-[#15231b] px-4 text-base text-[#111813] dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none placeholder:text-gray-400 dark:placeholder:text-[#4a6356]" 
                                         id="vehicle-model" 
                                         placeholder={isMoto ? "ej. MT-07, GS 1250..." : "ej. 3008, Corolla, Golf..."} 
                                         type="text"
                                     />
                                 </div>
-                                <p className="text-xs text-[#608a6e] dark:text-[#6e9c80]">
+                                <p className="text-xs text-gray-500 dark:text-gray-400">
                                     {isMoto ? 'Necesario para intervalos de cadena/cardán.' : 'Necesario para sugerir el tipo de aceite correcto.'}
                                 </p>
                             </div>
@@ -154,13 +154,13 @@ const VehicleProfileSetup: React.FC = () => {
                                     <input 
                                         value={mileage}
                                         onChange={(e) => setMileage(e.target.value)}
-                                        className="form-input-transition block w-full h-14 rounded-xl border border-[#dbe6df] dark:border-[#354f40] bg-white dark:bg-[#15231b] px-4 pr-16 text-base text-[#111813] dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none placeholder:text-[#9ab8a4] dark:placeholder:text-[#4a6356]" 
+                                        className="form-input-transition block w-full h-14 rounded-xl border border-gray-200 dark:border-[#354f40] bg-white dark:bg-[#15231b] px-4 pr-16 text-base text-[#111813] dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none placeholder:text-gray-400 dark:placeholder:text-[#4a6356]" 
                                         id="current-mileage" 
                                         placeholder="ej. 25.000" 
                                         type="text"
                                     />
                                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4">
-                                        <span className="text-sm font-semibold text-[#608a6e] dark:text-[#6e9c80] bg-[#f5f8f6] dark:bg-[#1a2920] py-1 px-2 rounded">km</span>
+                                        <span className="text-sm font-semibold text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-[#1a2920] py-1 px-2 rounded">km</span>
                                     </div>
                                 </div>
                             </div>
@@ -168,11 +168,11 @@ const VehicleProfileSetup: React.FC = () => {
                     </div>
                     
                     {/* Footer / Actions */}
-                    <div className="p-8 mt-4 bg-[#fbfdfc] dark:bg-[#15231b] border-t border-[#edf2ef] dark:border-[#2a3f32]">
+                    <div className="p-8 mt-4 bg-gray-50 dark:bg-[#15231b] border-t border-gray-100 dark:border-[#2a3f32]">
                         <button 
                             onClick={handleSave}
                             disabled={!make}
-                            className={`group w-full h-14 font-bold text-lg rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center gap-3 relative overflow-hidden ${!make ? 'bg-gray-200 text-gray-400 dark:bg-gray-800 dark:text-gray-600 cursor-not-allowed' : 'bg-primary hover:bg-[#0bc248] text-[#052912] shadow-primary/20 hover:shadow-primary/40'}`}
+                            className={`group w-full h-14 font-bold text-lg rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center gap-3 relative overflow-hidden ${!make ? 'bg-gray-200 text-gray-400 dark:bg-gray-800 dark:text-gray-600 cursor-not-allowed' : 'bg-primary hover:bg-primary-hover text-white shadow-primary/20 hover:shadow-primary/40'}`}
                         >
                             <span className="relative z-10">Guardar Vehículo</span>
                             <span className="material-symbols-outlined text-[24px] relative z-10 transition-transform duration-300 group-hover:translate-x-1">arrow_forward</span>
@@ -181,15 +181,15 @@ const VehicleProfileSetup: React.FC = () => {
                         </button>
                         {/* Trust/Psychology Reinforcement */}
                         <div className="mt-4 flex justify-center items-center gap-2 opacity-80">
-                            <span className="material-symbols-outlined text-[#608a6e] dark:text-[#6e9c80] text-[18px]">verified_user</span>
-                            <p className="text-xs font-medium text-[#608a6e] dark:text-[#6e9c80]">Almacenado de forma segura y solo para alertas.</p>
+                            <span className="material-symbols-outlined text-gray-400 dark:text-gray-500 text-[18px]">verified_user</span>
+                            <p className="text-xs font-medium text-gray-400 dark:text-gray-500">Almacenado de forma segura y solo para alertas.</p>
                         </div>
                     </div>
                 </div>
                 
                 {/* Bottom Link */}
                 <div className="mt-6 text-center">
-                    <button onClick={() => navigate('/dashboard')} className="text-sm font-medium text-[#608a6e] hover:text-[#111813] dark:text-[#8bbaa0] dark:hover:text-white transition-colors">
+                    <button onClick={() => navigate('/dashboard')} className="text-sm font-medium text-gray-400 hover:text-[#111813] dark:text-gray-500 dark:hover:text-white transition-colors">
                         Omitir por ahora
                     </button>
                 </div>
