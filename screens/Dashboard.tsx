@@ -81,6 +81,56 @@ const KmUpdateModal: React.FC<{ isOpen: boolean, onClose: () => void, onSave: (k
     );
 };
 
+// Component for Group Subtasks Modal
+const GroupDetailModal: React.FC<{ isOpen: boolean, group: any, onClose: () => void, onSelectTask: (task: any) => void }> = ({ isOpen, group, onClose, onSelectTask }) => {
+    if (!isOpen || !group) return null;
+
+    return (
+        <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center sm:p-4">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={onClose}></div>
+            <div className="relative bg-background-light dark:bg-background-dark w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col max-h-[85vh] animate-in slide-in-from-bottom-10 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200">
+                
+                {/* Header */}
+                <div className={`p-6 border-b border-gray-100 dark:border-gray-800 ${group.bgHeader || 'bg-white dark:bg-white/5'} rounded-t-2xl`}>
+                    <div className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto mb-4 sm:hidden"></div>
+                    <div className="flex items-center gap-4">
+                        <div className={`h-12 w-12 rounded-xl flex items-center justify-center shadow-sm ${group.bg} ${group.color}`}>
+                            <span className="material-symbols-outlined text-2xl">{group.icon}</span>
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-black text-text-main dark:text-text-main-dark">{group.title}</h3>
+                            <p className="text-sm text-text-muted dark:text-text-muted-dark">{group.subtitle}</p>
+                        </div>
+                        <button onClick={onClose} className="ml-auto h-8 w-8 flex items-center justify-center rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 transition-colors">
+                            <span className="material-symbols-outlined text-sm">close</span>
+                        </button>
+                    </div>
+                </div>
+
+                {/* List */}
+                <div className="overflow-y-auto p-4 flex flex-col gap-3">
+                    {group.subTasks.map((task: any, idx: number) => (
+                        <button 
+                            key={idx} 
+                            onClick={() => onSelectTask(task)}
+                            className="flex items-center gap-4 p-4 rounded-xl bg-card-light dark:bg-card-dark border border-gray-200 dark:border-gray-700 hover:border-primary/50 shadow-sm transition-all text-left group"
+                        >
+                            <div className={`h-10 w-10 rounded-full ${task.bg} ${task.color} flex items-center justify-center shrink-0`}>
+                                <span className="material-symbols-outlined text-xl">{task.icon}</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <h4 className="font-bold text-text-main dark:text-text-main-dark group-hover:text-primary transition-colors">{task.title}</h4>
+                                <p className="text-xs text-text-muted dark:text-text-muted-dark truncate">{task.remaining}</p>
+                            </div>
+                            <span className="material-symbols-outlined text-gray-300 dark:text-gray-600 group-hover:text-primary">chevron_right</span>
+                        </button>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
+
 // --- Main Logic ---
 
 // Helper to calculate remaining KM based on history
@@ -108,79 +158,153 @@ const calculateRemaining = (taskKey: string, intervalKm: number, currentKm: numb
     return defaultRemaining;
 };
 
-const getMaintenanceTasks = (type: string, make: string, km: number, history: any, vehicleId: string) => {
-    const tasks = [];
-    
-    // --- MOTO ---
-    if (type === 'moto') {
-        // 1. Aceite (Solo Aceite)
-        tasks.push({
-            id: 'engine_oil_moto',
-            title: "Aceite de Motor",
-            icon: "oil_barrel",
-            color: "text-orange-600 dark:text-orange-400",
-            bg: "bg-orange-50 dark:bg-orange-900/20",
-            subtitle: "Lubricación del motor",
-            remaining: calculateRemaining('engine_oil_moto', 6000, km, history, vehicleId, "1.200 KM"),
-        });
+// Helper to calculate remaining TIME (Years)
+const calculateRemainingTime = (taskKey: string, intervalYears: number, history: any, vehicleId: string, defaultRemaining: string) => {
+     if (history && history[vehicleId] && history[vehicleId][taskKey]) {
+        const entry = history[vehicleId][taskKey];
+        let lastDate;
 
-        // 2. Filtros (Agrupados)
-        tasks.push({
-            id: 'filters_moto',
-            title: "Filtros",
-            icon: "filter_alt",
-            color: "text-yellow-600 dark:text-yellow-400",
-            bg: "bg-yellow-50 dark:bg-yellow-900/20",
-            subtitle: "Aceite, Aire, Combustible",
-            remaining: calculateRemaining('filters_moto', 6000, km, history, vehicleId, "1.200 KM"),
-        });
+        if (Array.isArray(entry)) {
+             if (entry.length === 0) return defaultRemaining;
+             const sorted = [...entry].sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+             lastDate = new Date(sorted[0].date);
+        } else {
+            lastDate = new Date(entry.date);
+        }
 
-        // 3. Neumáticos (Delantero y Trasero separados)
-        tasks.push({
-            id: 'tire_front',
-            title: "Neumático Delantero",
-            icon: "trip_origin", // Looks like a wheel
-            color: "text-blue-600 dark:text-blue-400",
-            bg: "bg-blue-50 dark:bg-blue-900/20",
-            subtitle: "Desgaste y presión",
-            remaining: calculateRemaining('tire_front', 15000, km, history, vehicleId, "5.000 KM"),
-        });
+        const now = new Date();
+        const diffTime = Math.abs(now.getTime() - lastDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+        const intervalDays = intervalYears * 365;
+        const remainingDays = intervalDays - diffDays;
+
+        if (remainingDays < 0) return "Vencido (Tiempo)";
+        if (remainingDays < 30) return `${remainingDays} días restantes`;
         
-        tasks.push({
-            id: 'tire_rear',
-            title: "Neumático Trasero",
-            icon: "tire_repair",
-            color: "text-blue-700 dark:text-blue-300",
-            bg: "bg-blue-100 dark:bg-blue-800/30",
-            subtitle: "Desgaste y tracción",
-            remaining: calculateRemaining('tire_rear', 10000, km, history, vehicleId, "3.000 KM"),
+        const remainingMonths = Math.floor(remainingDays / 30);
+        return `${remainingMonths} meses restantes`;
+     }
+     return defaultRemaining;
+}
+
+const getMaintenanceTasks = (type: string, make: string, km: number, history: any, vehicleId: string) => {
+    
+    // --- MOTO LOGIC (Grouped) ---
+    if (type === 'moto') {
+        const groups = [];
+
+        // 1. SEGURIDAD
+        const safetyTasks = [
+            {
+                id: 'tire_front', title: "Neumático Delantero", icon: "trip_origin", color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-900/20",
+                remaining: calculateRemaining('tire_front', 15000, km, history, vehicleId, "15.000 KM")
+            },
+            {
+                id: 'tire_rear', title: "Neumático Trasero", icon: "tire_repair", color: "text-blue-700 dark:text-blue-300", bg: "bg-blue-100 dark:bg-blue-800/30",
+                remaining: calculateRemaining('tire_rear', 10000, km, history, vehicleId, "10.000 KM")
+            },
+            {
+                id: 'brake_fluid_moto', title: "Líquido de Frenos", icon: "water_drop", color: "text-purple-600 dark:text-purple-400", bg: "bg-purple-50 dark:bg-purple-900/20",
+                remaining: calculateRemainingTime('brake_fluid_moto', 2, history, vehicleId, "2 Años")
+            },
+            {
+                id: 'brake_pads_moto', title: "Pastillas de Freno", icon: "disc_full", color: "text-red-600 dark:text-red-400", bg: "bg-red-50 dark:bg-red-900/20",
+                remaining: calculateRemaining('brake_pads_moto', 15000, km, history, vehicleId, "15.000 KM")
+            },
+            {
+                id: 'battery_moto', title: "Batería", icon: "battery_charging_full", color: "text-yellow-600 dark:text-yellow-400", bg: "bg-yellow-50 dark:bg-yellow-900/20",
+                remaining: calculateRemainingTime('battery_moto', 3, history, vehicleId, "3-4 Años")
+            }
+        ];
+        groups.push({
+            id: 'group_safety',
+            title: "Seguridad",
+            subtitle: "Frenos, Neumáticos, Batería",
+            icon: "health_and_safety",
+            color: "text-red-600 dark:text-red-400",
+            bg: "bg-red-100 dark:bg-red-900/30",
+            bgHeader: "bg-red-50 dark:bg-red-900/10",
+            isGroup: true,
+            subTasks: safetyTasks,
+            status: safetyTasks.some(t => t.remaining.includes('Vencido')) ? 'Vencido' : 'OK'
         });
 
-        // 4. Mecánica Específica
-        tasks.push({
-            id: 'chain',
-            title: "Engrase de Cadena",
-            icon: "link",
-            color: "text-emerald-600 dark:text-emerald-400",
-            bg: "bg-emerald-50 dark:bg-emerald-900/20",
-            subtitle: "Cada 500-1000 km",
-            remaining: calculateRemaining('chain', 800, km, history, vehicleId, "350 KM"),
-        });
-
+        // 2. MOTOR
+        const engineTasks = [
+            {
+                id: 'engine_oil_moto', title: "Aceite de Motor", icon: "oil_barrel", color: "text-orange-600 dark:text-orange-400", bg: "bg-orange-50 dark:bg-orange-900/20",
+                remaining: calculateRemaining('engine_oil_moto', 6000, km, history, vehicleId, "6.000 KM")
+            },
+            {
+                id: 'filters_moto', title: "Filtros", icon: "filter_alt", color: "text-yellow-600 dark:text-yellow-400", bg: "bg-yellow-50 dark:bg-yellow-900/20",
+                remaining: calculateRemaining('filters_moto', 6000, km, history, vehicleId, "6.000 KM")
+            },
+            {
+                id: 'spark_plugs', title: "Bujías", icon: "offline_bolt", color: "text-yellow-500 dark:text-yellow-400", bg: "bg-yellow-50 dark:bg-yellow-900/20",
+                remaining: calculateRemaining('spark_plugs', 20000, km, history, vehicleId, "20.000 KM")
+            },
+            {
+                id: 'coolant_moto', title: "Líquido Refrigerante", icon: "ac_unit", color: "text-cyan-600 dark:text-cyan-400", bg: "bg-cyan-50 dark:bg-cyan-900/20",
+                remaining: calculateRemainingTime('coolant_moto', 2, history, vehicleId, "2 Años")
+            }
+        ];
         if (make === 'Ducati') {
-            tasks.push({
-                id: 'desmo',
-                title: "Desmo Service",
-                icon: "settings_suggest",
-                color: "text-red-600 dark:text-red-400",
-                bg: "bg-red-50 dark:bg-red-900/20",
-                subtitle: "Reglaje de Válvulas",
-                remaining: calculateRemaining('desmo', 24000, km, history, vehicleId, "4.500 KM"),
+            engineTasks.push({
+                id: 'desmo', title: "Desmo Service", icon: "settings_suggest", color: "text-red-600 dark:text-red-400", bg: "bg-red-50 dark:bg-red-900/20",
+                remaining: calculateRemaining('desmo', 24000, km, history, vehicleId, "24.000 KM")
             });
         }
+        groups.push({
+            id: 'group_engine',
+            title: "Motor",
+            subtitle: "Aceite, Filtros, Bujías",
+            icon: "engine", // Custom font handling might be needed, using fallback
+            color: "text-orange-600 dark:text-orange-400",
+            bg: "bg-orange-100 dark:bg-orange-900/30",
+            bgHeader: "bg-orange-50 dark:bg-orange-900/10",
+            isGroup: true,
+            subTasks: engineTasks,
+            status: engineTasks.some(t => t.remaining.includes('Vencido')) ? 'Vencido' : 'OK'
+        });
+
+        // 3. TRANSMISIÓN Y PARTE CICLO
+        const cycleTasks = [
+            {
+                id: 'chain_kit', title: "Kit de Arrastre", icon: "settings_suggest", color: "text-slate-600 dark:text-slate-400", bg: "bg-slate-100 dark:bg-slate-800",
+                remaining: calculateRemaining('chain_kit', 25000, km, history, vehicleId, "25.000 KM")
+            },
+            {
+                id: 'chain', title: "Engrase de Cadena", icon: "link", color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-900/20",
+                remaining: calculateRemaining('chain', 800, km, history, vehicleId, "800 KM")
+            },
+            {
+                id: 'fork_oil', title: "Aceite Horquilla", icon: "download", color: "text-indigo-600 dark:text-indigo-400", bg: "bg-indigo-50 dark:bg-indigo-900/20",
+                remaining: calculateRemaining('fork_oil', 30000, km, history, vehicleId, "30.000 KM")
+            },
+            {
+                id: 'clutch_moto', title: "Embrague", icon: "radio_button_checked", color: "text-gray-600 dark:text-gray-400", bg: "bg-gray-100 dark:bg-gray-800",
+                remaining: calculateRemaining('clutch_moto', 10000, km, history, vehicleId, "10.000 KM")
+            }
+        ];
+        groups.push({
+            id: 'group_cycle',
+            title: "Transmisión y Ciclo",
+            subtitle: "Kit, Embrague, Horquilla",
+            icon: "motorcycle",
+            color: "text-emerald-600 dark:text-emerald-400",
+            bg: "bg-emerald-100 dark:bg-emerald-900/30",
+            bgHeader: "bg-emerald-50 dark:bg-emerald-900/10",
+            isGroup: true,
+            subTasks: cycleTasks,
+            status: cycleTasks.some(t => t.remaining.includes('Vencido')) ? 'Vencido' : 'OK'
+        });
+
+        return groups;
     } 
-    // --- COCHE ---
+    
+    // --- COCHE (Legacy Flat List) ---
     else {
+        const tasks = [];
         // 1. Aceite (Solo Aceite)
         tasks.push({
             id: 'oil',
@@ -246,8 +370,9 @@ const getMaintenanceTasks = (type: string, make: string, km: number, history: an
             subtitle: "Seguridad activa",
             remaining: "2 Años", 
         });
+
+        return tasks;
     }
-    return tasks;
 };
 
 const Dashboard: React.FC = () => {
@@ -255,6 +380,10 @@ const Dashboard: React.FC = () => {
     const [vehicle, setVehicle] = useState<any>(null);
     const [tasks, setTasks] = useState<any[]>([]);
     const [garage, setGarage] = useState<any[]>([]);
+    
+    // Group Modal State
+    const [selectedGroup, setSelectedGroup] = useState<any>(null);
+    const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
     
     // Dates & Notifications
     const [itvDate, setItvDate] = useState<string>('');
@@ -442,6 +571,22 @@ const Dashboard: React.FC = () => {
         setNotifications(prev => prev.filter((_, i) => i !== index));
     };
 
+    // Group Click Handler
+    const handleTaskClick = (task: any) => {
+        if (task.isGroup) {
+            setSelectedGroup(task);
+            setIsGroupModalOpen(true);
+        } else {
+            navigate('/task-detail', { state: { task, vehicle } });
+        }
+    };
+
+    // Subtask Selection Handler
+    const handleSubtaskSelect = (subTask: any) => {
+        setIsGroupModalOpen(false);
+        navigate('/task-detail', { state: { task: subTask, vehicle } });
+    };
+
     const iconMap: any = { 'car': 'directions_car', 'moto': 'two_wheeler' };
     
     if (!vehicle) return null;
@@ -603,17 +748,45 @@ const Dashboard: React.FC = () => {
                             </div>
                             <div className="flex flex-col gap-3">
                                 {tasks.map((task, idx) => (
-                                    <div key={idx} onClick={() => navigate('/task-detail', { state: { task, vehicle } })} className="group bg-card-light dark:bg-card-dark rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700 hover:border-primary/50 transition-all cursor-pointer flex items-center gap-4">
+                                    <div 
+                                        key={idx} 
+                                        onClick={() => handleTaskClick(task)} 
+                                        className="group bg-card-light dark:bg-card-dark rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700 hover:border-primary/50 transition-all cursor-pointer flex items-center gap-4 relative overflow-hidden"
+                                    >
+                                        {/* Group status indicator stripe */}
+                                        {task.isGroup && task.status === 'Vencido' && (
+                                            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-red-500"></div>
+                                        )}
+                                        {task.isGroup && task.status === 'OK' && (
+                                            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500"></div>
+                                        )}
+
                                         <div className={`h-12 w-12 rounded-lg ${task.bg} flex items-center justify-center ${task.color} shrink-0`}>
                                             <span className="material-symbols-outlined">{task.icon}</span>
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h4 className="font-bold text-text-main dark:text-text-main-dark truncate">{task.title}</h4>
+                                            <h4 className="font-bold text-text-main dark:text-text-main-dark truncate flex items-center gap-2">
+                                                {task.title}
+                                                {task.isGroup && (
+                                                    <span className="text-[10px] uppercase bg-gray-100 dark:bg-gray-800 text-gray-500 px-1.5 py-0.5 rounded font-bold tracking-wider">
+                                                        Grupo
+                                                    </span>
+                                                )}
+                                            </h4>
                                             <p className="text-sm text-text-muted dark:text-text-muted-dark truncate mt-0.5">{task.subtitle}</p>
                                         </div>
                                         <div className="text-right shrink-0">
-                                            <p className="text-sm font-bold text-text-main dark:text-text-main-dark">{task.remaining}</p>
+                                            {task.isGroup ? (
+                                                <div className={`text-xs font-bold px-2 py-1 rounded-full ${task.status === 'Vencido' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'}`}>
+                                                    {task.status === 'Vencido' ? 'Atención' : 'Todo OK'}
+                                                </div>
+                                            ) : (
+                                                <p className="text-sm font-bold text-text-main dark:text-text-main-dark">{task.remaining}</p>
+                                            )}
                                         </div>
+                                        {task.isGroup && (
+                                            <span className="material-symbols-outlined text-gray-300 dark:text-gray-600">chevron_right</span>
+                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -738,6 +911,13 @@ const Dashboard: React.FC = () => {
                 onClose={() => setShowKmModal(false)} 
                 onSave={handleSaveKm} 
                 currentKm={vehicle.mileage} 
+            />
+            
+            <GroupDetailModal 
+                isOpen={isGroupModalOpen}
+                group={selectedGroup}
+                onClose={() => setIsGroupModalOpen(false)}
+                onSelectTask={handleSubtaskSelect}
             />
         </div>
     );
