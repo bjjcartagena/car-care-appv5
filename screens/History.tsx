@@ -25,6 +25,28 @@ const TASK_TITLES: Record<string, string> = {
     clutch_moto: "Embrague"
 };
 
+const getHistoryTitle = (taskId: string, subType: string | undefined) => {
+    const title = TASK_TITLES[taskId] || taskId;
+    
+    // If it has a subtype (like Filters), format accordingly
+    if (subType) {
+        if (title.toLowerCase().includes('filtros')) return `Cambio de Filtro: ${subType}`;
+        return `Cambio: ${subType}`;
+    }
+
+    const lower = title.toLowerCase();
+    
+    // Specific Action Verbs based on task type
+    if (lower.includes('adblue')) return 'Relleno de AdBlue';
+    if (lower.includes('engrase')) return 'Engrase realizado';
+    if (lower.includes('presión') || lower.includes('revisión')) return 'Revisión realizada';
+    if (lower.includes('desmo')) return 'Desmo Service realizado';
+    if (lower.includes('itv')) return 'ITV pasada';
+    
+    // Default for parts is "Substitution"
+    return `Sustitución: ${title}`;
+};
+
 const History: React.FC = () => {
     const navigate = useNavigate();
     const [historyItems, setHistoryItems] = useState<any[]>([]);
@@ -51,7 +73,7 @@ const History: React.FC = () => {
                      recordList.forEach(r => {
                          items.push({
                              ...r,
-                             title: TASK_TITLES[taskId] || taskId,
+                             title: getHistoryTitle(taskId, r.subType), // Use the smart formatter
                              vehicleName: vehicleLabel,
                              vehicleType: vehicleType,
                              taskId // to determine icon
