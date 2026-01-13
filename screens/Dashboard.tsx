@@ -258,7 +258,7 @@ const getMaintenanceTasks = (type: string, make: string, km: number, history: an
             id: 'group_engine',
             title: "Motor",
             subtitle: "Aceite, Filtros, Bujías",
-            icon: "engine", // Custom font handling might be needed, using fallback
+            icon: "engineering", // CHANGED from 'engine' to 'engineering' to fix rendering
             color: "text-orange-600 dark:text-orange-400",
             bg: "bg-orange-100 dark:bg-orange-900/30",
             bgHeader: "bg-orange-50 dark:bg-orange-900/10",
@@ -274,7 +274,7 @@ const getMaintenanceTasks = (type: string, make: string, km: number, history: an
                 remaining: calculateRemaining('chain_kit', 25000, km, history, vehicleId, "25.000 KM")
             },
             {
-                id: 'chain', title: "Engrase de Cadena", icon: "link", color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-900/20",
+                id: 'chain', title: "Engrase de Cadena", icon: "link", color: "text-indigo-600 dark:text-indigo-400", bg: "bg-indigo-50 dark:bg-indigo-900/20",
                 remaining: calculateRemaining('chain', 800, km, history, vehicleId, "800 KM")
             },
             {
@@ -291,9 +291,9 @@ const getMaintenanceTasks = (type: string, make: string, km: number, history: an
             title: "Transmisión y Ciclo",
             subtitle: "Kit, Embrague, Horquilla",
             icon: "motorcycle",
-            color: "text-emerald-600 dark:text-emerald-400",
-            bg: "bg-emerald-100 dark:bg-emerald-900/30",
-            bgHeader: "bg-emerald-50 dark:bg-emerald-900/10",
+            color: "text-indigo-600 dark:text-indigo-400", // CHANGED from emerald to indigo
+            bg: "bg-indigo-100 dark:bg-indigo-900/30", // CHANGED from emerald to indigo
+            bgHeader: "bg-indigo-50 dark:bg-indigo-900/10", // CHANGED from emerald to indigo
             isGroup: true,
             subTasks: cycleTasks,
             status: cycleTasks.some(t => t.remaining.includes('Vencido')) ? 'Vencido' : 'OK'
@@ -616,8 +616,8 @@ const Dashboard: React.FC = () => {
             // Amarillento (Próximo)
             return `${base} bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-900/50`;
         } else {
-             // Verdoso (OK)
-             return `${base} bg-emerald-50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-900/50`;
+             // Azul/Primary (OK) - CHANGED from Green
+             return `${base} bg-blue-50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-900/50`;
         }
     };
 
@@ -626,12 +626,13 @@ const Dashboard: React.FC = () => {
          if (days === null) return `${base} h-10 w-10 bg-primary/20 text-primary`;
 
         if (days <= 0) {
-            // Vencido: Icono Grande, Pulsante, Sombra Roja
+            // Vencido
             return `${base} h-14 w-14 bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400 shadow-lg shadow-red-500/20 animate-pulse`;
         } else if (days <= 30) {
              return `${base} h-10 w-10 bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400`;
         } else {
-             return `${base} h-10 w-10 bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400`;
+             // Azul (OK) - CHANGED from Green
+             return `${base} h-10 w-10 bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400`;
         }
     };
 
@@ -758,7 +759,7 @@ const Dashboard: React.FC = () => {
                                             <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-red-500"></div>
                                         )}
                                         {task.isGroup && task.status === 'OK' && (
-                                            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500"></div>
+                                            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-500"></div> // CHANGED from emerald
                                         )}
 
                                         <div className={`h-12 w-12 rounded-lg ${task.bg} flex items-center justify-center ${task.color} shrink-0`}>
@@ -777,7 +778,7 @@ const Dashboard: React.FC = () => {
                                         </div>
                                         <div className="text-right shrink-0">
                                             {task.isGroup ? (
-                                                <div className={`text-xs font-bold px-2 py-1 rounded-full ${task.status === 'Vencido' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'}`}>
+                                                <div className={`text-xs font-bold px-2 py-1 rounded-full ${task.status === 'Vencido' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'}`}>
                                                     {task.status === 'Vencido' ? 'Atención' : 'Todo OK'}
                                                 </div>
                                             ) : (
