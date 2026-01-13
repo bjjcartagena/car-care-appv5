@@ -745,12 +745,12 @@ const Dashboard: React.FC = () => {
                         <div>
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-lg font-bold">Plan de Mantenimiento</h3>
-                                <button 
-                                    onClick={() => navigate('/history')}
-                                    className="text-sm font-bold text-primary hover:underline"
+                                <Link 
+                                    to="/history"
+                                    className="text-sm font-bold text-primary hover:underline cursor-pointer"
                                 >
                                     Ver plan completo
-                                </button>
+                                </Link>
                             </div>
                             <div className="flex flex-col gap-3">
                                 {tasks.map((task, idx) => (
