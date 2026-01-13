@@ -18,7 +18,7 @@ const getTaskContent = (taskTitle: string) => {
         };
     } 
     // --- ACEITE (Standalone) ---
-    else if (titleLower.includes('aceite') && !titleLower.includes('filtro') && !titleLower.includes('cambios') && !titleLower.includes('cardán')) {
+    else if (titleLower.includes('aceite') && !titleLower.includes('filtro') && !titleLower.includes('cambios') && !titleLower.includes('cardán') && !titleLower.includes('horquilla')) {
         return {
             description: "El aceite es la sangre de tu motor. Cambiarlo a tiempo lubrica las partes móviles, reduce el calor y elimina impurezas. Un aceite viejo pierde propiedades, aumentando el desgaste y el riesgo de averías graves.",
             image: "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?q=80&w=1000&auto=format&fit=crop",
@@ -59,6 +59,27 @@ const getTaskContent = (taskTitle: string) => {
             difficulty: "Alta"
         };
     }
+    // --- OTHER MOTO SPECIFIC ---
+    else if (titleLower.includes('batería')) {
+        return {
+            description: "Las baterías de moto son pequeñas y sufren mucho con el frío o la inactividad. Si te cuesta arrancar o las luces parpadean, cámbiala antes de quedarte tirado. Usa un mantenedor si no la usas a diario.",
+            image: "https://images.unsplash.com/photo-1599818815183-a15d0824b07c?q=80&w=1000&auto=format&fit=crop",
+            interval: "3-4 Años",
+            intervalSub: "Revisar carga",
+            cost: "40€ - 100€",
+            difficulty: "Baja"
+        };
+    }
+    else if (titleLower.includes('horquilla')) {
+        return {
+            description: "El aceite de la horquilla se degrada con el uso, volviéndose como agua y perdiendo capacidad de amortiguación. Si tu moto 'rebota' mucho o se hunde excesivamente al frenar, es hora de cambiarlo y revisar retenes.",
+            image: "https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?q=80&w=1000&auto=format&fit=crop",
+            interval: "30.000 km",
+            intervalSub: "o cada 4 años",
+            cost: "100€ - 200€",
+            difficulty: "Alta"
+        };
+    }
     // --- OTHER ---
     else if (titleLower.includes('caja cambios') || titleLower.includes('caja de cambios')) {
          return {
@@ -71,12 +92,12 @@ const getTaskContent = (taskTitle: string) => {
         };
     } else if (titleLower.includes('embrague')) {
         return {
-            description: "Un embrague mal ajustado puede patinar (perdiendo potencia) o no desacoplar bien (dificultando el cambio y encontrando el punto muerto). Ajustar la tensión del cable y la holgura de la maneta es vital.",
+            description: "Un embrague desgastado patina y la moto no acelera aunque suban las revoluciones. También hay que revisar la tensión del cable o el líquido si es hidráulico.",
             image: "https://images.unsplash.com/photo-1558981000-f294a6ed32b2?q=80&w=1000&auto=format&fit=crop",
-            interval: "Cada 6.000 km",
+            interval: "10.000 km",
             intervalSub: "Revisar holgura",
-            cost: "0€ - 30€",
-            difficulty: "Baja"
+            cost: "0€ - 150€",
+            difficulty: "Media"
         };
     } else if (titleLower.includes('distribución')) {
         return {
@@ -96,7 +117,7 @@ const getTaskContent = (taskTitle: string) => {
             cost: "15€ - 30€",
             difficulty: "Baja"
         };
-    } else if (titleLower.includes('cadena')) {
+    } else if (titleLower.includes('cadena') && !titleLower.includes('kit')) {
         return {
             description: "Una cadena seca o sucia se desgasta rápidamente y pierde potencia. Engrasarla cada 500-1000km prolonga la vida del kit de arrastre y mejora la suavidad de la conducción.",
             image: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?q=80&w=1000&auto=format&fit=crop",
@@ -104,6 +125,15 @@ const getTaskContent = (taskTitle: string) => {
             intervalSub: "Limpiar y engrasar",
             cost: "5€ - 15€",
             difficulty: "Baja"
+        };
+    } else if (titleLower.includes('kit de arrastre')) {
+        return {
+            description: "El kit de arrastre (cadena, piñón y corona) se cambia en conjunto. Si los dientes de la corona están afilados como garras o la cadena tiene eslabones gripados, cámbialo ya para evitar roturas peligrosas.",
+            image: "https://images.unsplash.com/photo-1589758438366-8fa10433e543?q=80&w=1000&auto=format&fit=crop",
+            interval: "25.000 km",
+            intervalSub: "Cambio completo",
+            cost: "120€ - 250€",
+            difficulty: "Media"
         };
     } else if (titleLower.includes('cardán') || titleLower.includes('cardan')) {
         return {
