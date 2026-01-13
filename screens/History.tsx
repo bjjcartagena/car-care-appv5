@@ -28,43 +28,41 @@ const TASK_TITLES: Record<string, string> = {
 const History: React.FC = () => {
     const navigate = useNavigate();
     const [historyItems, setHistoryItems] = useState<any[]>([]);
-    const [vehicle, setVehicle] = useState<any>(null);
 
     useEffect(() => {
         const garageStr = localStorage.getItem('autominder_garage');
-        const activeId = localStorage.getItem('autominder_active_id');
         const historyStr = localStorage.getItem('autominder_history');
         
-        if (garageStr && activeId) {
-            const garage = JSON.parse(garageStr);
-            const activeVehicle = garage.find((v: any) => v.id === activeId);
-            setVehicle(activeVehicle);
-
-            if (historyStr && activeVehicle) {
-                const fullHistory = JSON.parse(historyStr);
-                const vehicleHistory = fullHistory[activeId] || {};
+        if (garageStr && historyStr) {
+            const garageData = JSON.parse(garageStr);
+            const historyData = JSON.parse(historyStr);
+            
+            const items: any[] = [];
+            
+            // Iterate over all vehicles in history
+            Object.keys(historyData).forEach(vehId => {
+                const vehicleInfo = garageData.find((v:any) => v.id === vehId);
+                const vehicleLabel = vehicleInfo ? `${vehicleInfo.make} ${vehicleInfo.model}` : 'Vehículo eliminado';
+                const vehicleType = vehicleInfo ? vehicleInfo.type : 'car';
                 
-                // Flatten history structure
-                const items: any[] = [];
-                Object.entries(vehicleHistory).forEach(([taskId, records]: [string, any]) => {
-                    const recordList = Array.isArray(records) ? records : [records];
-                    
-                    recordList.forEach((record: any) => {
-                        items.push({
-                            taskId,
-                            title: TASK_TITLES[taskId] || "Mantenimiento",
-                            date: record.date,
-                            km: record.km,
-                            type: record.type,
-                            subType: record.subType
-                        });
-                    });
-                });
-
-                // Sort by date descending
-                items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-                setHistoryItems(items);
-            }
+                const tasks = historyData[vehId];
+                Object.entries(tasks).forEach(([taskId, records]: [string, any]) => {
+                     const recordList = Array.isArray(records) ? records : [records];
+                     recordList.forEach(r => {
+                         items.push({
+                             ...r,
+                             title: TASK_TITLES[taskId] || taskId,
+                             vehicleName: vehicleLabel,
+                             vehicleType: vehicleType,
+                             taskId // to determine icon
+                         })
+                     })
+                })
+            })
+            
+            // Sort by date descending
+            items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            setHistoryItems(items);
         }
     }, []);
 
@@ -86,20 +84,6 @@ const History: React.FC = () => {
             </header>
 
             <main className="flex-1 w-full max-w-[720px] mx-auto px-4 md:px-6 py-8 pb-24">
-                
-                {/* Vehicle Header */}
-                {vehicle && (
-                    <div className="flex items-center gap-4 mb-10 pb-6 border-b border-gray-200 dark:border-gray-800">
-                        <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                            <span className="material-symbols-outlined text-3xl">{iconMap[vehicle.type]}</span>
-                        </div>
-                        <div>
-                            <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Vehículo</p>
-                            <h2 className="text-2xl font-black capitalize">{vehicle.make} {vehicle.model}</h2>
-                        </div>
-                    </div>
-                )}
-
                 {/* Timeline */}
                 {historyItems.length === 0 ? (
                     <div className="text-center py-20 opacity-60">
@@ -118,7 +102,7 @@ const History: React.FC = () => {
                                 
                                 {/* Content */}
                                 <div className="bg-card-light dark:bg-card-dark rounded-2xl p-5 shadow-sm border border-gray-200 dark:border-gray-700 hover:border-primary/30 transition-colors">
-                                    <div className="flex justify-between items-start mb-2">
+                                    <div className="flex justify-between items-start mb-3">
                                         <div className="flex items-center gap-2">
                                             <span className="font-bold text-lg text-text-main dark:text-white">{item.title}</span>
                                             {item.subType && (
@@ -132,16 +116,21 @@ const History: React.FC = () => {
                                         </span>
                                     </div>
                                     
-                                    <div className="flex items-center gap-6 text-sm text-text-muted dark:text-text-muted-dark">
-                                        <div className="flex items-center gap-1.5">
-                                            <span className="material-symbols-outlined text-lg">speed</span>
-                                            <span className="font-mono font-medium">{parseInt(item.km).toLocaleString('es-ES')} km</span>
+                                    <div className="flex items-center justify-between mt-2">
+                                        <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 dark:bg-white/5 rounded-lg border border-gray-100 dark:border-gray-700/50">
+                                            <span className="material-symbols-outlined text-gray-500 text-lg">
+                                                {iconMap[item.vehicleType]}
+                                            </span>
+                                            <span className="text-xs font-bold text-gray-700 dark:text-gray-300 capitalize">
+                                                {item.vehicleName}
+                                            </span>
                                         </div>
-                                        <div className="flex items-center gap-1.5">
-                                             <span className="material-symbols-outlined text-lg">
-                                                {item.taskId.includes('oil') ? 'water_drop' : 'build'}
-                                             </span>
-                                            <span className="capitalize">{item.type === 'refill' ? 'Relleno' : 'Servicio'}</span>
+
+                                        <div className="flex items-center gap-4 text-sm text-text-muted dark:text-text-muted-dark">
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="material-symbols-outlined text-lg">speed</span>
+                                                <span className="font-mono font-medium">{parseInt(item.km).toLocaleString('es-ES')} km</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
