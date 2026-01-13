@@ -86,10 +86,23 @@ const KmUpdateModal: React.FC<{ isOpen: boolean, onClose: () => void, onSave: (k
 // Helper to calculate remaining KM based on history
 const calculateRemaining = (taskKey: string, intervalKm: number, currentKm: number, history: any, vehicleId: string, defaultRemaining: string) => {
     if (history && history[vehicleId] && history[vehicleId][taskKey]) {
-        const lastServiceKm = parseInt(history[vehicleId][taskKey].km);
+        const entry = history[vehicleId][taskKey];
+        let lastServiceKm = 0;
+        
+        // Handle Array History (New Format) vs Object History (Old Format)
+        if (Array.isArray(entry)) {
+            if (entry.length === 0) return defaultRemaining;
+            // Sort by KM descending to find the absolute latest service
+            const sorted = [...entry].sort((a: any, b: any) => parseInt(b.km) - parseInt(a.km));
+            lastServiceKm = parseInt(sorted[0].km);
+        } else {
+            lastServiceKm = parseInt(entry.km);
+        }
+
         const kmDriven = currentKm - lastServiceKm;
         const remaining = intervalKm - kmDriven;
-        if (remaining < 0) return `Vencido hace ${Math.abs(remaining)} KM`;
+        
+        if (remaining < 0) return `Vencido hace ${Math.abs(remaining).toLocaleString('es-ES')} KM`;
         return `${remaining.toLocaleString('es-ES')} KM`;
     }
     return defaultRemaining;
