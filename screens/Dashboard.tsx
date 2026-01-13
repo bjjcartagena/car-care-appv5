@@ -258,7 +258,7 @@ const getMaintenanceTasks = (type: string, make: string, km: number, history: an
             id: 'group_engine',
             title: "Motor",
             subtitle: "Aceite, Filtros, Bujías",
-            icon: "engineering", // CHANGED from 'engine' to 'engineering' to fix rendering
+            icon: "engineering", 
             color: "text-orange-600 dark:text-orange-400",
             bg: "bg-orange-100 dark:bg-orange-900/30",
             bgHeader: "bg-orange-50 dark:bg-orange-900/10",
@@ -291,9 +291,9 @@ const getMaintenanceTasks = (type: string, make: string, km: number, history: an
             title: "Transmisión y Ciclo",
             subtitle: "Kit, Embrague, Horquilla",
             icon: "motorcycle",
-            color: "text-indigo-600 dark:text-indigo-400", // CHANGED from emerald to indigo
-            bg: "bg-indigo-100 dark:bg-indigo-900/30", // CHANGED from emerald to indigo
-            bgHeader: "bg-indigo-50 dark:bg-indigo-900/10", // CHANGED from emerald to indigo
+            color: "text-indigo-600 dark:text-indigo-400",
+            bg: "bg-indigo-100 dark:bg-indigo-900/30",
+            bgHeader: "bg-indigo-50 dark:bg-indigo-900/10",
             isGroup: true,
             subTasks: cycleTasks,
             status: cycleTasks.some(t => t.remaining.includes('Vencido')) ? 'Vencido' : 'OK'
@@ -745,7 +745,12 @@ const Dashboard: React.FC = () => {
                         <div>
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-lg font-bold">Plan de Mantenimiento</h3>
-                                <button className="text-sm font-bold text-primary hover:underline">Ver plan completo</button>
+                                <button 
+                                    onClick={() => navigate('/history')}
+                                    className="text-sm font-bold text-primary hover:underline"
+                                >
+                                    Ver plan completo
+                                </button>
                             </div>
                             <div className="flex flex-col gap-3">
                                 {tasks.map((task, idx) => (
@@ -759,7 +764,7 @@ const Dashboard: React.FC = () => {
                                             <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-red-500"></div>
                                         )}
                                         {task.isGroup && task.status === 'OK' && (
-                                            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-500"></div> // CHANGED from emerald
+                                            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-500"></div> 
                                         )}
 
                                         <div className={`h-12 w-12 rounded-lg ${task.bg} flex items-center justify-center ${task.color} shrink-0`}>
