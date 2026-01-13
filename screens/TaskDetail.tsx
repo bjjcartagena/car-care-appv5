@@ -175,7 +175,7 @@ const formatHistoryTitle = (taskTitle: string, record: any) => {
     const lower = taskTitle.toLowerCase();
     
     if (lower.includes('adblue')) return 'Relleno de AdBlue';
-    if (lower.includes('engrase')) return 'Engrase realizado';
+    if (lower.includes('engrase') || lower.includes('cadena')) return 'Engrase realizado';
     if (lower.includes('presión') || lower.includes('revisión')) return 'Revisión realizada';
     if (lower.includes('service')) return `${taskTitle} realizado`;
     
