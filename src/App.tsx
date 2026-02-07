@@ -3,7 +3,7 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { supabase } from './lib/supabase';
 import { Session } from '@supabase/supabase-js';
 
-// Tus pantallas
+// Importamos las pantallas
 import VehicleTypeSelection from './screens/VehicleTypeSelection';
 import VehicleProfileSetup from './screens/VehicleProfileSetup';
 import Dashboard from './screens/Dashboard';
@@ -16,11 +16,13 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // 1. Verificamos si ya hay sesión al arrancar
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
     });
 
+    // 2. Escuchamos cambios (login/logout)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setLoading(false);
@@ -30,37 +32,32 @@ const App: React.FC = () => {
   }, []);
 
   if (loading) {
-    return <div className="p-10 text-center">Cargando...</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">Cargando...</div>;
   }
 
   return (
     <HashRouter>
-     
-      {/* --- BOTÓN DE EMERGENCIA INICIO --- */}
-      {session && (
-        <button
-          onClick={() => supabase.auth.signOut()}
-          style={{
-            position: 'fixed',
-            top: '10px',
-            right: '10px',
-            zIndex: 9999,
-            backgroundColor: 'red',
-            color: 'white',
-            padding: '15px',
-            border: 'none',
-            borderRadius: '5px',
-            fontWeight: 'bold',
-            cursor: 'pointer'
-          }}
-        >
-          CERRAR SESIÓN (TEST)
-        </button>
-      )}
-      {/* --- BOTÓN DE EMERGENCIA FIN --- */}
       <Routes>
+        {!session ? (
+          /* SI NO HAY SESIÓN -> Manda al Login */
+          <>
+            <Route path="/login" element={<Login />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </>
+        ) : (
+          /* SI HAY SESIÓN -> Manda a la App */
+          <>
+            <Route path="/" element={<VehicleTypeSelection />} />
+            <Route path="/setup-profile" element={<VehicleProfileSetup />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/task-detail" element={<TaskDetail />} />
+            <Route path="/garage" element={<Garage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </>
+        )}
+      </Routes>
     </HashRouter>
   );
 };
 
-export default App;  
+export default App;
