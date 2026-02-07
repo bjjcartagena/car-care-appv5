@@ -1,29 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { supabase } from './lib/supabase'; // Importamos la conexión
+import { supabase } from './lib/supabase';
 import { Session } from '@supabase/supabase-js';
 
-// Importamos tus pantallas
+// Tus pantallas
 import VehicleTypeSelection from './screens/VehicleTypeSelection';
 import VehicleProfileSetup from './screens/VehicleProfileSetup';
 import Dashboard from './screens/Dashboard';
 import TaskDetail from './screens/TaskDetail';
 import Garage from './screens/Garage';
-import History from './screens/History';
-import Login from './screens/Login'; // La pantalla nueva
+import Login from './screens/Login'; // Asegúrate de que este archivo existe
 
 const App: React.FC = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1. Ver si ya hay usuario al arrancar
+    // Comprobar sesión al inicio
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
     });
 
-    // 2. Escuchar si el usuario entra o sale
+    // Escuchar cambios (login/logout)
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -35,30 +34,28 @@ const App: React.FC = () => {
   }, []);
 
   if (loading) {
-    return <div className="min-h-screen bg-slate-900 flex items-center justify-center text-white">Cargando...</div>;
+    return <div className="p-10 text-center">Cargando...</div>;
   }
 
   return (
     <HashRouter>
       <Routes>
-        {/* SI NO HAY SESIÓN, SOLO MOSTRAMOS LOGIN */}
         {!session ? (
-            <>
-              <Route path="/login" element={<Login />} />
-              <Route path="*" element={<Navigate to="/login" replace />} />
-            </>
+          // SI NO HAY SESIÓN -> AL LOGIN
+          <>
+            <Route path="/login" element={<Login />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </>
         ) : (
-            /* SI HAY SESIÓN, MOSTRAMOS LA APP */
-            <>
-              <Route path="/" element={<VehicleTypeSelection />} />
-              <Route path="/setup-profile" element={<VehicleProfileSetup />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/task-detail" element={<TaskDetail />} />
-              <Route path="/garage" element={<Garage />} />
-              <Route path="/history" element={<History />} />
-              {/* Si intentan ir a login estando logueados, mandar a inicio */}
-              <Route path="/login" element={<Navigate to="/" replace />} />
-            </>
+          // SI HAY SESIÓN -> A LA APP
+          <>
+            <Route path="/" element={<VehicleTypeSelection />} />
+            <Route path="/setup-profile" element={<VehicleProfileSetup />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/task-detail" element={<TaskDetail />} />
+            <Route path="/garage" element={<Garage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </>
         )}
       </Routes>
     </HashRouter>
