@@ -35,23 +35,30 @@ const App: React.FC = () => {
 
   return (
     <HashRouter>
+     
+      {/* --- BOTÓN DE EMERGENCIA INICIO --- */}
+      {session && (
+        <button
+          onClick={() => supabase.auth.signOut()}
+          style={{
+            position: 'fixed',
+            top: '10px',
+            right: '10px',
+            zIndex: 9999,
+            backgroundColor: 'red',
+            color: 'white',
+            padding: '15px',
+            border: 'none',
+            borderRadius: '5px',
+            fontWeight: 'bold',
+            cursor: 'pointer'
+          }}
+        >
+          CERRAR SESIÓN (TEST)
+        </button>
+      )}
+      {/* --- BOTÓN DE EMERGENCIA FIN --- */}
       <Routes>
-        {!session ? (
-          <>
-            <Route path="/login" element={<Login />} />
-            <Route path="*" element={<Navigate to="/login" replace />} />
-          </>
-        ) : (
-          <>
-            <Route path="/" element={<VehicleTypeSelection />} />
-            <Route path="/setup-profile" element={<VehicleProfileSetup />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/task-detail" element={<TaskDetail />} />
-            <Route path="/garage" element={<Garage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </>
-        )}
-      </Routes>
     </HashRouter>
   );
 };
