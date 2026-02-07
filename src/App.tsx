@@ -9,23 +9,19 @@ import VehicleProfileSetup from './screens/VehicleProfileSetup';
 import Dashboard from './screens/Dashboard';
 import TaskDetail from './screens/TaskDetail';
 import Garage from './screens/Garage';
-import Login from './screens/Login'; // Asegúrate de que este archivo existe
+import Login from './screens/Login';
 
 const App: React.FC = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Comprobar sesión al inicio
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
     });
 
-    // Escuchar cambios (login/logout)
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setLoading(false);
     });
@@ -41,13 +37,11 @@ const App: React.FC = () => {
     <HashRouter>
       <Routes>
         {!session ? (
-          // SI NO HAY SESIÓN -> AL LOGIN
           <>
             <Route path="/login" element={<Login />} />
             <Route path="*" element={<Navigate to="/login" replace />} />
           </>
         ) : (
-          // SI HAY SESIÓN -> A LA APP
           <>
             <Route path="/" element={<VehicleTypeSelection />} />
             <Route path="/setup-profile" element={<VehicleProfileSetup />} />
