@@ -1,27 +1,26 @@
+// src/App.tsx
 import React, { useEffect, useState } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { supabase } from './lib/supabase';
 import { Session } from '@supabase/supabase-js';
 
-// Importamos SOLO el Login (que sabemos que existe)
+// Importamos las pantallas (¡Incluyendo la nueva!)
 import Login from './screens/Login';
+import WelcomeOffer from './screens/WelcomeOffer'; // <-- NUEVA IMPORTACIÓN
 
-// --- COMENTAMOS LO QUE FALTA POR AHORA ---
+// Comentamos el resto por ahora
 // import VehicleTypeSelection from './screens/VehicleTypeSelection';
-// import VehicleProfileSetup from './screens/VehicleProfileSetup';
 // import Dashboard from './screens/Dashboard';
-// import TaskDetail from './screens/TaskDetail';
-// import Garage from './screens/Garage';
 
-// Componente temporal para cuando entras (mientras arreglamos el resto)
+// Componente temporal
 const Proximamente = () => (
-  <div className="p-10 text-white bg-slate-900 min-h-screen text-center">
-    <h1 className="text-3xl font-bold">¡Bienvenido! 🚗</h1>
-    <p className="mt-4">Has iniciado sesión correctamente.</p>
-    <p>El resto de la app se está cargando...</p>
+  <div className="p-10 text-gray-900 bg-gray-50 min-h-screen text-center flex flex-col items-center justify-center">
+    <h1 className="text-4xl font-bold">¡Dentro! 🎉</h1>
+    <p className="mt-4 text-xl">Has iniciado sesión con tu primer vehículo gratis.</p>
+    <p className="mt-2 text-gray-600">(Aquí iría el Dashboard y la opción de subir de plan)</p>
     <button 
       onClick={() => supabase.auth.signOut()} 
-      className="mt-8 bg-red-600 px-4 py-2 rounded text-white"
+      className="mt-8 bg-gray-200 hover:bg-gray-300 px-6 py-3 rounded-lg text-gray-700 font-bold transition"
     >
       Cerrar Sesión
     </button>
@@ -46,19 +45,23 @@ const App: React.FC = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  if (loading) return <div className="p-10 bg-slate-900 text-white">Cargando...</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-500">Cargando...</div>;
 
   return (
     <HashRouter>
       <Routes>
         {!session ? (
-          /* SI NO HAY SESIÓN -> LOGIN */
+          /* SI NO HAY SESIÓN */
           <>
+            {/* La ruta raíz "/" ahora muestra la Oferta de Bienvenida */}
+            <Route path="/" element={<WelcomeOffer />} />
+            {/* La ruta "/login" muestra el Login minimalista */}
             <Route path="/login" element={<Login />} />
-            <Route path="*" element={<Navigate to="/login" replace />} />
+            {/* Cualquier otra ruta redirige a la Oferta de Bienvenida */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </>
         ) : (
-          /* SI HAY SESIÓN -> PANTALLA TEMPORAL */
+          /* SI HAY SESIÓN */
           <>
             <Route path="/" element={<Proximamente />} />
             <Route path="*" element={<Navigate to="/" replace />} />
