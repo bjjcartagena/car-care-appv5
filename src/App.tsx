@@ -1,69 +1,97 @@
-// src/App.tsx
 import React, { useEffect, useState } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { supabase } from './lib/supabase';
 import { Session } from '@supabase/supabase-js';
 
-// Importamos las pantallas (¡Incluyendo la nueva!)
+// --- IMPORTAMOS LAS PANTALLAS REALES ---
 import Login from './screens/Login';
-import WelcomeOffer from './screens/WelcomeOffer'; // <-- NUEVA IMPORTACIÓN
+import WelcomeOffer from './screens/WelcomeOffer';
+import VehicleTypeSelection from './screens/VehicleTypeSelection'; // Pantalla para añadir coche
+import Dashboard from './screens/Dashboard'; // Pantalla del garaje
 
-// Comentamos el resto por ahora
-// import VehicleTypeSelection from './screens/VehicleTypeSelection';
-// import Dashboard from './screens/Dashboard';
-
-// Componente temporal
-const Proximamente = () => (
-  <div className="p-10 text-gray-900 bg-gray-50 min-h-screen text-center flex flex-col items-center justify-center">
-    <h1 className="text-4xl font-bold">¡Dentro! 🎉</h1>
-    <p className="mt-4 text-xl">Has iniciado sesión con tu primer vehículo gratis.</p>
-    <p className="mt-2 text-gray-600">(Aquí iría el Dashboard y la opción de subir de plan)</p>
-    <button 
-      onClick={() => supabase.auth.signOut()} 
-      className="mt-8 bg-gray-200 hover:bg-gray-300 px-6 py-3 rounded-lg text-gray-700 font-bold transition"
-    >
-      Cerrar Sesión
-    </button>
+// Componente "Cargando" bonito
+const LoadingScreen = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+      <p className="text-gray-500">Cargando tu garaje...</p>
+    </div>
   </div>
 );
 
 const App: React.FC = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasVehicles, setHasVehicles] = useState<boolean | null>(null); // null = no sabemos aún
 
   useEffect(() => {
+    // 1. Verificamos la sesión
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      setLoading(false);
+      if (session) checkUserVehicles(); // Si hay usuario, buscamos sus coches
+      else setLoading(false);
     });
 
+    // 2. Escuchamos cambios (login/logout)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      setLoading(false);
+      if (session) checkUserVehicles();
+      else {
+        setHasVehicles(null);
+        setLoading(false);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-500">Cargando...</div>;
+  // Función para ver si el usuario ya tiene coches creados
+  const checkUserVehicles = async () => {
+    try {
+      // Intentamos contar los coches en la base de datos
+      const { count, error } = await supabase
+        .from('vehicles')
+        .select('*', { count: 'exact', head: true });
+
+      if (error) throw error;
+      
+      // Si count es mayor que 0, es que tiene coches -> True
+      setHasVehicles(count !== null && count > 0);
+    } catch (error) {
+      console.log('Todavía no hay tabla de vehículos o ocurrió un error, enviando a crear coche...');
+      setHasVehicles(false); // Ante la duda, le mandamos a crear uno
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) return <LoadingScreen />;
 
   return (
     <HashRouter>
       <Routes>
         {!session ? (
-          /* SI NO HAY SESIÓN */
+          /* --- RUTAS PÚBLICAS (NO LOGUEADO) --- */
           <>
-            {/* La ruta raíz "/" ahora muestra la Oferta de Bienvenida */}
             <Route path="/" element={<WelcomeOffer />} />
-            {/* La ruta "/login" muestra el Login minimalista */}
             <Route path="/login" element={<Login />} />
-            {/* Cualquier otra ruta redirige a la Oferta de Bienvenida */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </>
         ) : (
-          /* SI HAY SESIÓN */
+          /* --- RUTAS PRIVADAS (LOGUEADO) --- */
           <>
-            <Route path="/" element={<Proximamente />} />
+            {/* Si tiene coches va al Dashboard, si no, a elegir tipo de vehículo */}
+            <Route 
+              path="/" 
+              element={
+                hasVehicles ? <Dashboard /> : <Navigate to="/add-vehicle" replace />
+              } 
+            />
+            
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/add-vehicle" element={<VehicleTypeSelection />} />
+            
+            {/* Ruta por defecto logueado */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </>
         )}
