@@ -161,9 +161,12 @@ const VehicleProfileSetup: React.FC = () => {
                     {/* Footer / Botón */}
                     <div className="p-8 mt-4 bg-gray-50 dark:bg-[#15231b] border-t border-gray-100 dark:border-[#2a3f32]">
                         <button
-                            onClick={handleSave}
-                            disabled={!make || loading}
-                            className={`group w-full h-14 font-bold text-lg rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center gap-3 relative overflow-hidden ${!make || loading ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20'}`}
+    onClick={handleSave}
+    // ANTES: disabled={!make || loading}
+    // AHORA (Corrección):
+    disabled={!make || !model || !mileage || loading}
+    className={`...`} // el resto de clases igual
+>
                         >
                             <span>{loading ? 'Guardando...' : 'Guardar Vehículo'}</span>
                             <span className="material-symbols-outlined text-[24px]">arrow_forward</span>
