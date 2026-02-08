@@ -42,8 +42,12 @@ const VehicleProfileSetup: React.FC = () => {
     }, [navigate]);
 
     const handleSave = async () => {
-        if (!make || !user) return;
-        setLoading(true);
+    // Añadimos model y mileage a la validación
+    if (!make || !model || !mileage || !user || !profile) {
+        alert("Por favor completa todos los campos");
+        return;
+    } 
+    setLoading(true);
 
         // --- AQUÍ ESTÁ LA CLAVE PARA QUE NO FALLE ---
         // Tu código original usaba 'make' y 'odometer_km'.
