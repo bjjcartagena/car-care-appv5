@@ -170,11 +170,14 @@ const VehicleProfileSetup: React.FC = () => {
     // AHORA (Corrección):
     disabled={!make || !model || !mileage || loading}
     className={`...`} // el resto de clases igual
+<button
+    onClick={handleSave}
+    disabled={!make || !model || !mileage || loading}
+    className={`group w-full h-14 font-bold text-lg rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center gap-3 relative overflow-hidden ${(!make || !model || !mileage || loading) ? 'bg-gray-200 text-gray-400 dark:bg-gray-800 dark:text-gray-600 cursor-not-allowed' : 'bg-primary hover:bg-primary-hover text-white shadow-primary/20 hover:shadow-primary/40'}`}
 >
-                        >
-                            <span>{loading ? 'Guardando...' : 'Guardar Vehículo'}</span>
-                            <span className="material-symbols-outlined text-[24px]">arrow_forward</span>
-                        </button>
+    <span className="relative z-10">{loading ? 'Guardando...' : 'Guardar Vehículo'}</span>
+    <span className="material-symbols-outlined text-[24px] relative z-10 transition-transform duration-300 group-hover:translate-x-1">arrow_forward</span>
+</button>
                     </div>
                 </div>
             </div>
